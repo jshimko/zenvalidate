@@ -3,10 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "zshy",
     "dev": "tsc --watch",
     "lint": "eslint . --fix",
     "test": "vitest",
@@ -14,30 +12,62 @@
     "tsc": "tsc",
     "tsc:check": "tsc --noEmit"
   },
+  "keywords": [
+    "typescript",
+    "schema",
+    "environment",
+    "env",
+    "dotenv",
+    "validation",
+    "type",
+    "inference",
+    "zod"
+  ],
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
     "@workspace/prettier-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
-    "@types/node": "^24.9.2",
-    "@vitest/coverage-v8": "^3.2.4",
-    "@vitest/ui": "^3.2.4",
-    "tsd": "^0.33.0",
-    "typescript": "^5.9.3",
-    "vitest": "^3.2.4",
-    "zod": "^4.1.12"
+    "@types/node": "24.9.2",
+    "@vitest/coverage-v8": "3.2.4",
+    "@vitest/ui": "3.2.4",
+    "tsd": "0.33.0",
+    "typescript": "5.9.3",
+    "vitest": "3.2.4",
+    "zod": "4.1.12",
+    "zshy": "0.4.4"
   },
   "peerDependencies": {
     "zod": "^4"
   },
   "prettier": "@workspace/prettier-config",
+  "zshy": {
+    "exports": {
+      ".": "./src/index.ts",
+      "./types": "./src/types.ts",
+      "./validators": "./src/validators.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.cts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "types": "./dist/index.d.cts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./types": {
-      "types": "./dist/lib/types.d.ts",
-      "default": "./dist/lib/types.js"
+      "types": "./dist/types.d.cts",
+      "import": "./dist/types.js",
+      "require": "./dist/types.cjs"
+    },
+    "./validators": {
+      "types": "./dist/validators.d.cts",
+      "import": "./dist/validators.js",
+      "require": "./dist/validators.cjs"
     }
   }
 }

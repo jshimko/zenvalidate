@@ -1,21 +1,38 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Default",
   "compilerOptions": {
-    "allowJs": true,
-    "declaration": true,
-    "declarationMap": true,
-    "esModuleInterop": true,
-    "incremental": true,
-    "isolatedModules": true,
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "target": "es2020",
+    "lib": ["es2020", "dom"],
     "module": "Preserve",
-    "moduleDetection": "force",
     "moduleResolution": "Bundler",
-    "noUncheckedIndexedAccess": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
+    "jsx": "react",
+
     "strict": true,
-    "target": "ES2022"
-  }
+    "alwaysStrict": true,
+    "noUncheckedIndexedAccess": false,
+
+    "types": [],
+    "exactOptionalPropertyTypes": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitOverride": true,
+
+    "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true,
+
+    "removeComments": false,
+    "esModuleInterop": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "downlevelIteration": true,
+    "isolatedModules": true,
+
+    "pretty": true
+  },
+  "exclude": ["node_modules"]
 }

@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "turbo dev",
-    "build": "turbo run build",
+    "build": "turbo run build && pnpm readme:sync",
     "clean": "./scripts/clean-all.sh",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,md}\"",
@@ -12,6 +12,7 @@
     "tsc:check": "turbo run tsc:check",
     "checks": "pnpm build && pnpm lint && pnpm tsc:check && pnpm test",
     "checks:full": "pnpm clean && pnpm i && pnpm checks",
+    "readme:sync": "cp README.md packages/zenvalid/README.md",
     "changeset": "changeset",
     "version": "changeset version",
     "release": "changeset publish"

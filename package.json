@@ -29,6 +29,11 @@
     "node": ">=22",
     "pnpm": ">=10"
   },
+  "pnpm": {
+    "overrides": {
+      "eslint": "9.38.0"
+    }
+  },
   "devEngines": {
     "runtime": {
       "name": "node",

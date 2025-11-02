@@ -6,7 +6,8 @@
   "scripts": {
     "build": "zshy",
     "dev": "tsc --watch",
-    "lint": "eslint . --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "tsc": "tsc",

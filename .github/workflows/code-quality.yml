@@ -30,7 +30,7 @@ jobs:
         with:
           run_install: false
 
-      - run: pnpm install
+      - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm tsc:check

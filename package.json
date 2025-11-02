@@ -7,10 +7,15 @@
     "clean": "./scripts/clean-all.sh",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,md}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,md}\"",
     "test": "turbo run test",
-    "tsc:check": "turbo run tsc:check"
+    "tsc:check": "turbo run tsc:check",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "changeset publish"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.7",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/prettier-config": "workspace:*",
     "eslint": "9.39.0",

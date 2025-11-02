@@ -4,8 +4,7 @@
 
 A lightweight, zero-dependency (except Zod) library that provides bulletproof environment variable validation with full TypeScript support, client/server separation, and runtime safety for both Node.js and browser environments.
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8%2B-blue)](https://www.typescriptlang.org/)
-[![Zod](https://img.shields.io/badge/Zod-v4-green)](https://zod.dev/)
+[![Zod](https://img.shields.io/badge/Zod-v4-purple)](https://zod.dev/)
 [![Node](https://img.shields.io/badge/Node-22%2B-brightgreen)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
@@ -866,15 +865,15 @@ Validates environment variables against a specification.
 
 **Options:**
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `env` | `NodeJS.ProcessEnv` | `process.env` | Environment source |
-| `clientSafePrefixes` | `string[]` | `[]` | Prefixes for auto-exposed variables |
-| `serverOnlyPrefixes` | `string[]` | `[]` | Prefixes for forced server-only variables |
-| `onError` | `'throw' \| 'exit' \| 'return'` | `'exit'` (server), `'throw'` (client) | Error handling strategy |
-| `onClientAccessError` | `'throw' \| 'warn' \| 'ignore'` | `'warn'` (dev), `'ignore'` (prod) | Client access error handling |
-| `reporter` | `function \| null` | `null` | Custom error reporter |
-| `strict` | `boolean` | `true` | Prevent access to non-validated variables |
+| Option                | Type                            | Default                               | Description                               |
+| --------------------- | ------------------------------- | ------------------------------------- | ----------------------------------------- |
+| `env`                 | `NodeJS.ProcessEnv`             | `process.env`                         | Environment source                        |
+| `clientSafePrefixes`  | `string[]`                      | `[]`                                  | Prefixes for auto-exposed variables       |
+| `serverOnlyPrefixes`  | `string[]`                      | `[]`                                  | Prefixes for forced server-only variables |
+| `onError`             | `'throw' \| 'exit' \| 'return'` | `'exit'` (server), `'throw'` (client) | Error handling strategy                   |
+| `onClientAccessError` | `'throw' \| 'warn' \| 'ignore'` | `'warn'` (dev), `'ignore'` (prod)     | Client access error handling              |
+| `reporter`            | `function \| null`              | `null`                                | Custom error reporter                     |
+| `strict`              | `boolean`                       | `true`                                | Prevent access to non-validated variables |
 
 ### Validator Options
 

@@ -1,12 +1,10 @@
 packages:
-  - apps/*
-  - examples/*
   - packages/*
 
 minimumReleaseAge: 12
 
 minimumReleaseAgeExclude:
-  - '@eslint/*'
+  - "@eslint/*"
 
 onlyBuiltDependencies:
   - esbuild

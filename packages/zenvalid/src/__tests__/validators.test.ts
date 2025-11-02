@@ -397,7 +397,6 @@ describe("Validators Module", () => {
       const ipv6OnlySchema = host({ ipv6Only: true });
       expect(ipv6OnlySchema.parse("::1")).toBe("::1");
       expectValidationError(() => ipv6OnlySchema.parse("192.168.1.1"));
-
     });
   });
 

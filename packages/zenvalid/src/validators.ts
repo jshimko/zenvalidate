@@ -255,15 +255,13 @@ export function str<TChoices extends readonly string[] | undefined = undefined>(
   if (options?.choices && options.choices.length > 0) {
     // Create enum schema for choices
     const [first, ...rest] = options.choices;
-    if (first !== undefined) {
-      // Type-safe enum creation
-      let enumSchema = z.enum([first, ...rest]);
-      // Apply defaults before returning
-      enumSchema = applyEnvironmentDefaults(enumSchema, options as BaseOptions<string>) as typeof enumSchema;
-      attachMetadata(enumSchema, options as BaseOptions<string>);
-      // Enum is a valid string schema
-      return enumSchema as unknown as z.ZodType<TChoices extends readonly string[] ? TChoices[number] : string>;
-    }
+    // Type-safe enum creation
+    let enumSchema = z.enum([first, ...rest]);
+    // Apply defaults before returning
+    enumSchema = applyEnvironmentDefaults(enumSchema, options as BaseOptions<string>) as typeof enumSchema;
+    attachMetadata(enumSchema, options as BaseOptions<string>);
+    // Enum is a valid string schema
+    return enumSchema as unknown as z.ZodType<TChoices extends readonly string[] ? TChoices[number] : string>;
   }
 
   // Apply environment defaults and attach metadata
@@ -392,25 +390,23 @@ export function num<TChoices extends readonly number[] | undefined = undefined>(
   if (options?.choices && options.choices.length > 0) {
     // Create union schema for number choices with coercion
     const [first, ...rest] = options.choices;
-    if (first !== undefined) {
-      // Create a schema that first coerces to number, then validates against choices
-      const choicesSchema = z.preprocess(
-        (val) => {
-          // Coerce to number first
-          if (typeof val === "string") {
-            const num = Number(val);
-            return isNaN(num) ? val : num;
-          }
-          return val;
-        },
-        z.union([z.literal(first), ...rest.map((v) => z.literal(v))] as [z.ZodLiteral<number>, ...z.ZodLiteral<number>[]])
-      );
+    // Create a schema that first coerces to number, then validates against choices
+    const choicesSchema = z.preprocess(
+      (val) => {
+        // Coerce to number first
+        if (typeof val === "string") {
+          const num = Number(val);
+          return isNaN(num) ? val : num;
+        }
+        return val;
+      },
+      z.union([z.literal(first), ...rest.map((v) => z.literal(v))] as [z.ZodLiteral<number>, ...z.ZodLiteral<number>[]])
+    );
 
-      // Apply environment defaults and attach metadata
-      const finalSchema = applyEnvironmentDefaults(choicesSchema, options as BaseOptions<number>);
-      attachMetadata(finalSchema, options as BaseOptions<number>);
-      return finalSchema as unknown as z.ZodType<TChoices extends readonly number[] ? TChoices[number] : number>;
-    }
+    // Apply environment defaults and attach metadata
+    const finalSchema = applyEnvironmentDefaults(choicesSchema, options as BaseOptions<number>);
+    attachMetadata(finalSchema, options as BaseOptions<number>);
+    return finalSchema as unknown as z.ZodType<TChoices extends readonly number[] ? TChoices[number] : number>;
   }
 
   // Apply environment defaults and attach metadata

@@ -6,3 +6,4 @@ eslint.config.mjs
 vitest.config.ts
 tsconfig.json
 tsconfig.tsbuildinfo
+CLAUDE.md

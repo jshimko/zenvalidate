@@ -502,7 +502,7 @@ describe("Integration Tests", () => {
         transform: (val: unknown) => {
           const str = val as string;
           const [version, prerelease] = str.split("-");
-          const versionParts = version?.split(".") ?? [];
+          const versionParts = version.split(".");
           const [major, minor, patch] = versionParts.map(Number);
           return { major, minor, patch, prerelease, raw: str };
         }

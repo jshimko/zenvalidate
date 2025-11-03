@@ -26,15 +26,15 @@
     "zod"
   ],
   "devDependencies": {
+    "@types/node": "24.10.0",
+    "@vitest/coverage-v8": "4.0.6",
+    "@vitest/ui": "4.0.6",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/prettier-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
-    "@types/node": "24.9.2",
-    "@vitest/coverage-v8": "3.2.4",
-    "@vitest/ui": "3.2.4",
     "tsd": "0.33.0",
     "typescript": "5.9.3",
-    "vitest": "3.2.4",
+    "vitest": "4.0.6",
     "zod": "4.1.12",
     "zshy": "0.4.4"
   },

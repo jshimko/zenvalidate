@@ -21,7 +21,7 @@ export function createMockEnv(vars: Record<string, string | undefined> = {}): Re
  */
 export function mockRuntime(type: "server" | "client"): { restore: () => void } {
   // Mock the runtime module to control client/server detection
-  const mocks: ReturnType<typeof vi.spyOn>[] = [];
+  const mocks: { mockRestore: () => void }[] = [];
 
   if (type === "client") {
     // Mock client environment

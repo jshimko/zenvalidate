@@ -16,9 +16,10 @@
     "changeset": "changeset",
     "version": "changeset version",
     "release": "changeset publish",
-    "deps:check": "./scripts/updateAllDeps.sh ncu",
+    "deps:check": "./scripts/updateAllDeps.sh ncu -t minor",
     "deps:update": "./scripts/updateAllDeps.sh",
-    "deps:update:major": "./scripts/updateAllDeps.sh"
+    "deps:check:major": "./scripts/updateAllDeps.sh ncu -t minor",
+    "deps:update:major": "./scripts/updateAllDeps.sh ncu -u"
   },
   "devDependencies": {
     "@changesets/cli": "2.29.7",

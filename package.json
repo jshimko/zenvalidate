@@ -15,7 +15,10 @@
     "readme:sync": "cp README.md packages/zenvalidate/README.md",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "changeset publish"
+    "release": "changeset publish",
+    "deps:check": "./scripts/updateAllDeps.sh ncu",
+    "deps:update": "./scripts/updateAllDeps.sh",
+    "deps:update:major": "./scripts/updateAllDeps.sh"
   },
   "devDependencies": {
     "@changesets/cli": "2.29.7",

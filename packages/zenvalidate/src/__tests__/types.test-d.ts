@@ -357,7 +357,7 @@ import {
     metadata?: {
       version: string;
       timestamp: number;
-    };
+    } | undefined;
   }>(env.APP_CONFIG);
 }
 

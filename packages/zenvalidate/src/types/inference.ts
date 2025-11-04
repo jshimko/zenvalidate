@@ -308,10 +308,10 @@ export type Discriminate<T, K extends keyof T> = T extends object
  */
 export interface ValidatorWithMetadata<T = unknown> extends z.ZodType<T> {
   _metadata?: {
-    client?: ClientConfig<T>;
-    autoExposed?: boolean;
-    serverOnly?: boolean;
-  };
+    client?: ClientConfig<T> | undefined;
+    autoExposed?: boolean | undefined;
+    serverOnly?: boolean | undefined;
+  } | undefined;
 }
 
 /**
@@ -323,10 +323,10 @@ export type MetadataKey = z.ZodType | object;
  * Type for the metadata storage value.
  */
 export interface SchemaMetadata<T = unknown> {
-  options?: BaseOptions<T>;
-  client?: ClientConfig<T>;
-  autoExposed?: boolean;
-  serverOnly?: boolean;
+  options?: BaseOptions<T> | undefined;
+  client?: ClientConfig<T> | undefined;
+  autoExposed?: boolean | undefined;
+  serverOnly?: boolean | undefined;
 }
 
 /**

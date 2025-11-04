@@ -27,21 +27,21 @@ export interface ClientConfig<T = string | number | boolean, TChoices = undefine
    * @param serverValue The original server-side value
    * @returns The transformed value for the client
    */
-  transform?: (serverValue: T) => T;
+  transform?: ((serverValue: T) => T) | undefined;
 
   /**
    * Override the default value specifically for client environments.
    * Takes precedence over the base `default` option when on client.
    * When choices are specified, this must be one of the choices.
    */
-  default?: TChoices extends readonly T[] ? TChoices[number] : T;
+  default?: (TChoices extends readonly T[] ? TChoices[number] : T) | undefined;
 
   /**
    * Override the development default specifically for client environments.
    * Takes precedence over the base `devDefault` option when on client in development.
    * When choices are specified, this must be one of the choices.
    */
-  devDefault?: TChoices extends readonly T[] ? TChoices[number] : T;
+  devDefault?: (TChoices extends readonly T[] ? TChoices[number] : T) | undefined;
 }
 
 /**
@@ -55,35 +55,35 @@ export interface BaseOptions<T = string | number | boolean, TChoices = undefined
    * Default value when the environment variable is not set in production.
    * When choices are specified, this must be one of the choices.
    */
-  default?: TChoices extends readonly T[] ? TChoices[number] : T;
+  default?: (TChoices extends readonly T[] ? TChoices[number] : T) | undefined;
 
   /**
    * Default value in development environment (NODE_ENV=development).
    * When choices are specified, this must be one of the choices.
    */
-  devDefault?: TChoices extends readonly T[] ? TChoices[number] : T;
+  devDefault?: (TChoices extends readonly T[] ? TChoices[number] : T) | undefined;
 
   /**
    * Default value in test environment (NODE_ENV=test).
    * When choices are specified, this must be one of the choices.
    */
-  testDefault?: TChoices extends readonly T[] ? TChoices[number] : T;
+  testDefault?: (TChoices extends readonly T[] ? TChoices[number] : T) | undefined;
 
   /**
    * Optional human-readable description for documentation.
    */
-  description?: string;
+  description?: string | undefined;
 
   /**
    * Example value for documentation purposes.
    */
-  example?: string;
+  example?: string | undefined;
 
   /**
    * Client-specific configuration.
    * If not provided, the value is server-only (secure by default).
    */
-  client?: ClientConfig<T, TChoices>;
+  client?: ClientConfig<T, TChoices> | undefined;
 }
 
 /**
@@ -96,22 +96,22 @@ export interface StringOptions<TChoices extends readonly string[] | undefined = 
    * Restrict to specific allowed values (enum).
    * Creates a union type in TypeScript.
    */
-  choices?: TChoices;
+  choices?: TChoices | undefined;
 
   /**
    * Minimum string length.
    */
-  min?: number;
+  min?: number | undefined;
 
   /**
    * Maximum string length.
    */
-  max?: number;
+  max?: number | undefined;
 
   /**
    * Regular expression pattern for validation.
    */
-  regex?: RegExp;
+  regex?: RegExp | undefined;
 }
 
 /**
@@ -123,32 +123,32 @@ export interface NumberOptions<TChoices extends readonly number[] | undefined = 
   /**
    * Restrict to specific allowed values (enum).
    */
-  choices?: TChoices;
+  choices?: TChoices | undefined;
 
   /**
    * Minimum value (inclusive).
    */
-  min?: number;
+  min?: number | undefined;
 
   /**
    * Maximum value (inclusive).
    */
-  max?: number;
+  max?: number | undefined;
 
   /**
    * Force integer validation (no decimals).
    */
-  int?: boolean;
+  int?: boolean | undefined;
 
   /**
    * Force positive number validation.
    */
-  positive?: boolean;
+  positive?: boolean | undefined;
 
   /**
    * Force negative number validation.
    */
-  negative?: boolean;
+  negative?: boolean | undefined;
 }
 
 /**
@@ -166,7 +166,7 @@ export interface EmailOptions extends BaseOptions<string> {
    * Custom regex pattern for email validation.
    * If not provided, uses Zod's built-in email regex validation.
    */
-  regex?: RegExp;
+  regex?: RegExp | undefined;
 }
 
 /**
@@ -177,7 +177,7 @@ export interface UrlOptions extends BaseOptions<string> {
   /**
    * Restrict to specific protocols (e.g., "https" or /^https$/).
    */
-  protocol?: string | RegExp;
+  protocol?: string | RegExp | undefined;
 
   /**
    * Restrict to specific hostnames (e.g., "example.com" or /^example\.com$/).
@@ -185,7 +185,7 @@ export interface UrlOptions extends BaseOptions<string> {
    * The regex version can be used when you need flexibility for things like partial matches,
    * multiple domains, subdomains, multiple ports, multiple domains, etc.
    */
-  hostname?: string | RegExp;
+  hostname?: string | RegExp | undefined;
 }
 
 /**
@@ -197,17 +197,17 @@ export interface HostOptions extends BaseOptions<string> {
    * Allow IP addresses in addition to hostnames.
    * @default true
    */
-  allowIP?: boolean;
+  allowIP?: boolean | undefined;
 
   /**
    * Restrict to IPv4 addresses only.
    */
-  ipv4Only?: boolean;
+  ipv4Only?: boolean | undefined;
 
   /**
    * Restrict to IPv6 addresses only.
    */
-  ipv6Only?: boolean;
+  ipv6Only?: boolean | undefined;
 }
 
 /**
@@ -219,13 +219,13 @@ export interface PortOptions extends BaseOptions<number> {
    * Minimum port number.
    * @default 1
    */
-  min?: number;
+  min?: number | undefined;
 
   /**
    * Maximum port number.
    * @default 65535
    */
-  max?: number;
+  max?: number | undefined;
 }
 
 /**
@@ -237,7 +237,7 @@ export interface JsonOptions<T = Record<string, unknown>> extends BaseOptions<T>
    * Zod schema to validate the parsed JSON against.
    * Ensures type safety for complex configuration objects.
    */
-  schema?: z.ZodType<T>;
+  schema?: z.ZodType<T> | undefined;
 }
 
 /**
@@ -249,19 +249,19 @@ export interface CustomValidatorOptions<TInput = string, TOutput = TInput> exten
    * @param value The input value to validate
    * @returns true if valid, false otherwise
    */
-  validator?: (value: TInput) => boolean;
+  validator?: ((value: TInput) => boolean) | undefined;
 
   /**
    * Transform function to convert input to output type.
    * Applied after validation succeeds.
    */
-  transform?: (value: TInput) => TOutput;
+  transform?: ((value: TInput) => TOutput) | undefined;
 
   /**
    * Zod schema factory for complex validation logic.
    * Provides full Zod schema capabilities.
    */
-  schemaFactory?: (input: TInput) => z.ZodType<TOutput>;
+  schemaFactory?: ((input: TInput) => z.ZodType<TOutput>) | undefined;
 }
 
 /**

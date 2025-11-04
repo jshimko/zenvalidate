@@ -354,10 +354,12 @@ import {
       roles: ("admin" | "user" | "guest")[];
     }[];
     settings: Record<string, unknown>;
-    metadata?: {
-      version: string;
-      timestamp: number;
-    } | undefined;
+    metadata?:
+      | {
+          version: string;
+          timestamp: number;
+        }
+      | undefined;
   }>(env.APP_CONFIG);
 }
 

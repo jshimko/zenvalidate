@@ -307,11 +307,13 @@ export type Discriminate<T, K extends keyof T> = T extends object
  * ```
  */
 export interface ValidatorWithMetadata<T = unknown> extends z.ZodType<T> {
-  _metadata?: {
-    client?: ClientConfig<T> | undefined;
-    autoExposed?: boolean | undefined;
-    serverOnly?: boolean | undefined;
-  } | undefined;
+  _metadata?:
+    | {
+        client?: ClientConfig<T> | undefined;
+        autoExposed?: boolean | undefined;
+        serverOnly?: boolean | undefined;
+      }
+    | undefined;
 }
 
 /**

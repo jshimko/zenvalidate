@@ -1,5 +1,11 @@
 # zenvalidate
 
+## 1.0.2
+
+### Patch Changes
+
+- Updated to Vitest made a variety of few linting and type check configuration changes to make checks a bit more strict.
+
 ## 1.0.1
 
 ### Patch Changes

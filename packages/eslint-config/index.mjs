@@ -1,22 +1,14 @@
 // @ts-check
-import { globalIgnores } from "eslint/config";
 import eslint from "@eslint/js";
 import vitestPlugin from "@vitest/eslint-plugin";
 import prettierConfig from "eslint-config-prettier";
 import jsdoc from "eslint-plugin-jsdoc";
+import { globalIgnores } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default [
-  globalIgnores([
-    ".augment-guidelines",
-    "dist",
-    "node_modules",
-    ".turbo",
-    "tsconfig.tsbuildinfo",
-    "coverage",
-    "prisma-generator-pothos-codegen"
-  ]),
+  globalIgnores(["dist", "node_modules", ".turbo", "tsconfig.tsbuildinfo", "coverage"]),
 
   // Base ESLint recommended config
   eslint.configs.recommended,

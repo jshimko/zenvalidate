@@ -6,24 +6,26 @@
 
 _(Zod + env + validate)_
 
-**Type-safe environment variable validation and strict type safety built on Zod v4.**
+**Type-safe environment variable validation with client/server support built on Zod v4.**
 
-## Why?
+## Why another env validation library?
 
-I was originally inspired to build this project because I had been using [envalid](https://github.com/af/envalid?tab=readme-ov-file) in all of my TypeScript projects for years, but I wanted to take it a step further to support using Zod for more complex validation and transformation options using an API most JS developers are already familiar with. So big thanks to [@af](https://github.com/af) for the initial inspiration and the nice API (the public API of `zenvalidate` is nearly identical to `envalid` for most common usage).
+I had been using [envalid](https://github.com/af/envalid?tab=readme-ov-file) in most of my projects for years, but I wanted have an API that would support using [Zod](https://zod.dev/) for the validation and transformation so the API could easily be extended using the Zod API's that most JS devs are already familiar with.
 
-So I essentially tried to keep the same great DX, but wrote all of the validation and type inference pieces with Zod instead. This allows using battle-tested Zod validation and also adds a lot of flexibility for more complex validation and transformation logic using Zod API's that everyone is probably already familiar with and using in their projects already.
+I also wanted the ability to support client/server separation for full-stack frameworks similar to how [next-runtime-env](https://github.com/expatfile/next-runtime-env) did for Next.js, but without having a dependency on Next.js or React.
+
+So big thanks to [@af](https://github.com/af) and [@expatfile](https://github.com/expatfile) for the initial inspiration and the nice API's (the public API of `zenvalidate` is nearly identical to `envalid` in most use cases).
 
 ### Key Features
 
-- **25+ built-in validators** - Common env var formats out of the box
+- **25+ built-in validators** - Validators for common env var formats out of the box
 - **Environment-specific defaults** - Different defaults for dev/test/prod
 - **Full type inference** - No coercion or type annotations needed
 - **Client/server separation** - Automatic security boundaries
-- **Zero dependencies** - Only Zod v4 as a peer dependency
-- **Framework agnostic** - Works with Next.js, Vite, Remix, plain Node.js
 - **Transform functions** - Sanitize values for client exposure
-- **Strict validation** - Catch configuration errors immediately and fail fast at runtime
+- **Framework agnostic** - Works with Next.js, Vite, Remix, plain Node.js
+- **Zero dependencies** - Only Zod v4 as a peer dependency
+- **Strict runtime safety** - Catch app configuration errors immediately and fail fast at runtime
 
 ## Quick Start
 
@@ -53,7 +55,7 @@ const env = zenv({
 
 // Validated with Zod and TypeScript knows the exact types
 console.log(env.DATABASE_URL); // string (valid URL guaranteed)
-console.log(env.PORT); // number (1-65535), default 3000
+console.log(env.PORT); // integer (1-65535), default 3000
 console.log(env.LOG_LEVEL); // (union) 'debug' | 'info' | 'warn' | 'error'
 console.log(env.NODE_ENV); // (union) 'development' | 'production' | 'test'
 ```
@@ -149,7 +151,6 @@ const env = zenv({
 Full TypeScript inference without type annotations:
 
 ```typescript
-// Literal types with choices
 const env = zenv({
   LOG_LEVEL: str({
     choices: ["debug", "info", "warn", "error"],
@@ -158,8 +159,13 @@ const env = zenv({
   })
 });
 // env.LOG_LEVEL - union type: "debug" | "info"  | "warn" | "error"
+```
 
-// make variables optional by explicitly setting undefined as the default value
+**Optional values**
+
+Make variables optional by explicitly setting `undefined` as the default value
+
+```typescript
 const env = zenv({
   OPTIONAL_API_KEY: str({ default: undefined })
 });
@@ -181,24 +187,45 @@ const env = zenv({
     default: { timeout: 5000, retries: 3 } // type inferred
   })
 });
-// env.SERVICE_CONFIG - typed as Config
+// env.SERVICE_CONFIG - type inferred as Config
 ```
 
-**IMPORTANT**: The above example does **NOT** validate the JSON with Zod. It simply casts the output from `JSON.parse()` as your provided type and provides type safety on defaults. If you want to also strictly validate the JSON at runtime (recommended), you should pass a custom Zod schema to the validator like this:
+**IMPORTANT**: The above example does **NOT** validate the JSON with Zod. It simply casts the output from `JSON.parse()` as the provided `Config` type and provides type inference on default value configuration and the returned value.
+
+If you want to strictly validate the JSON at runtime (recommended), you should pass a custom Zod schema to the validator like this instead:
+
+```typescript
+export const configSchema = z.object({
+  timeout: z.number().positive(), // non-zero positive number
+  retries: z.number().nonnegative() // allow for 0 retries
+});
+
+export type Config = z.infer<typeof configSchema>; // { timeout: number; retries: number; }
+
+// pass schema to the json() validator
+const env = zenv({
+  SERVICE_CONFIG: json({
+    schema: configSchema,
+    default: { timeout: 5000, retries: 3 } // type inferred from schema
+  })
+});
+
+// Returns fully parsed/validated JSON of type Config
+// env.SERVICE_CONFIG === { timeout: 5000, retries: 3 }
+```
+
+Other than applying defaults, the above example is essentially doing the following:
 
 ```typescript
 const configSchema = z.object({
-  timeout: z.number().positive().default(5000), // non-zero positive number
-  retries: z.number().nonnegative().default(3) // allows for 0 retries
+  timeout: z.number().positive(),
+  retries: z.number().nonnegative()
 });
 
-type Config = z.infer<typeof configSchema>;
+const jsonConfig = JSON.parse(process.env.SERVICE_CONFIG);
 
-// and then pass it to the json() validator
-const env = zenv({
-  SERVICE_CONFIG: json({ schema: configSchema })
-});
-// env.SERVICE_CONFIG - fully parsed/validated JSON of type Config
+const SERVICE_CONFIG = configSchema.parse(jsonConfig);
+// SERVICE_CONFIG - { timeout: number; retries: number; }
 ```
 
 ## Client/Server Separation
@@ -208,19 +235,16 @@ Automatic security boundaries for client/server frameworks:
 ```typescript
 const env = zenv(
   {
-    // Server-only by default
+    // Server-only by default, undefined if accessed on client
     DATABASE_URL: url(),
     SECRET_KEY: str(),
 
     // Explicit client exposure control per variable
     API_HOST: host({
-      client: {
-        expose: true,
-        transform: (host) => host.replace(".internal", ".public")
-      }
+      client: { expose: true }
     }),
 
-    // exposed to client by clientSafePrefixes option below
+    // auto-exposed on client by clientSafePrefixes option below
     NEXT_PUBLIC_API_URL: url(), // Next.js public
     VITE_API_URL: url(), // Vite public
     PUBLIC_VERSION: str() // Generic public
@@ -235,25 +259,28 @@ const env = zenv(
 
 #### Next.js (or similar)
 
+Define your env schema anywhere on the server side.
+
 ```ts
 // env.ts
 import { num, str, url, zenv } from "zenvalidate";
 
 export const env = zenv(
   {
-    // Client-safe variables (see clientSafePrefixes config below)
-    NEXT_PUBLIC_API_URL: url({ devDefault: "http://localhost:3000/api" }),
-    NEXT_PUBLIC_APP_NAME: str({ default: "My App", devDefault: "My App (dev)" }),
-
     // Server-only variables
     DATABASE_URL: url({ devDefault: "postgresql://user:pass@localhost:5432/dev" }),
     JWT_SECRET: str(),
 
-    // Runtime configuration
-    PORT: num({ default: 3000 }),
+    // Explicit client exposure control
+    // (Next.js already exposes process.env.NODE_ENV, but this version is strictly typed)
     NODE_ENV: str({
-      choices: ["development", "production", "test"]
-    })
+      choices: ["development", "production", "test"],
+      client: { expose: true }
+    }),
+
+    // Client-safe variables (see clientSafePrefixes config below)
+    NEXT_PUBLIC_API_URL: url({ devDefault: "http://localhost:3000/api" }),
+    NEXT_PUBLIC_APP_NAME: str({ default: "My App", devDefault: "My App (dev)" })
   },
   {
     clientSafePrefixes: ["NEXT_PUBLIC_"]
@@ -261,8 +288,10 @@ export const env = zenv(
 );
 ```
 
+Inject client-safe env into your page `<head>` during SSR
+
 ```tsx
-// app/layout.tsx - Inject client-safe env into your page <head> during SSR
+// app/layout.tsx
 import { getClientEnvScript } from "zenvalidate";
 
 import { env } from "@/config/env";
@@ -284,17 +313,16 @@ export default function RootLayout({ children }) {
 ```
 
 The above script returned by `getClientEnvScript(env)` writes your client-safe values to `window.__ZENV_CLIENT__` under the hood
-and then the `env` API will get the values from there when called in the browser. Any other client/server framework that functions similarly can be configured this way.
+and then the `env` API will get the values from there when called in the browser. Any other client/server SSR framework that functions similarly can be configured this way.
 
-#### Node.js / Express (or any other server-side framework)
+#### Node.js / Express (or any server-only framework)
 
 ```ts
 import express from "express";
 import { host, num, port, str, url, zenv } from "zenvalidate";
 
 const env = zenv({
-  // Server configuration
-  HOST: host({ default: "0.0.0.0" }),
+  API_HOST: host({ devDefault: "localhost" }),
   PORT: port({ default: 3000 }),
 
   // Database
@@ -325,11 +353,15 @@ const env = zenv({
 });
 
 const app = express();
+const db = new Database(env.DATABASE_URL, { poolSize: env.DATABASE_POOL_SIZE });
+const redis = new Redis(env.REDIS_URL);
 
-app.listen(env.PORT, env.HOST, () => {
-  console.log(`Server running at http://${env.HOST}:${env.PORT}`);
+app.listen(env.PORT, () => {
+  console.log(`Server running at http://${env.API_HOST}:${env.PORT}`);
 });
 ```
+
+Note that all required variables above are already set in local development, so no .env file or configuration required to spin up the app locally. And then production will enforce all of the required values at startup so you don't forget to override development defaults.
 
 ## Advanced Usage
 
@@ -595,14 +627,16 @@ const env = zenv({
 });
 ```
 
-### From dotenv
+### From dotenv or plain process.env
 
 ```typescript
-// Before (dotenv)
 require("dotenv").config();
+
+// Before (manual validation)
 const port = parseInt(process.env.PORT || "3000");
-const debug = process.env.DEBUG === "true";
-const apiUrl = process.env.API_URL; // Could be undefined
+if (isNaN(port)) throw new Error("Invalid PORT");
+const debug = process.env.DEBUG === "true"; // must be exact string match
+const apiUrl = process.env.API_URL; // Could be undefined or invalid
 
 // After (zenvalidate)
 import { zenv, port, bool, url } from "zenvalidate";
@@ -612,33 +646,14 @@ const env = zenv({
   DEBUG: bool({ default: false, devDefault: true }),
   API_URL: url({ devDefault: "http://localhost:3000", default: "https://api.example.com" })
 });
-// Types are all guaranteed, validation is automatic, defaults are applied automatically based on NODE_ENV
-```
-
-### From plain process.env
-
-```typescript
-// Before (manual validation)
-const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
-if (isNaN(port)) throw new Error("Invalid PORT");
-
-const apiUrl = process.env.API_URL;
-if (!apiUrl) throw new Error("API_URL required");
-if (!apiUrl.startsWith("https://")) throw new Error("API_URL must be HTTPS");
-
-// After (zenvalidate)
-const env = zenv({
-  PORT: port({ default: 3000 }),
-  API_URL: url({ protocol: "https" })
-});
-// Validation is declarative and type-safe
+// Validated, type-safe, and defaults applied automatically based on NODE_ENV
 ```
 
 ## Performance
 
 - **One-time validation** - Runs once at startup
 - **Zero runtime overhead** - After validation, access is direct property lookup
-- **WeakMap metadata** - Efficient storage without schema pollution
+- **WeakMap metadata** - Efficient metadata storage without schema pollution
 - **Proxy-based protection** - Minimal overhead for client/server separation
 
 ## Links

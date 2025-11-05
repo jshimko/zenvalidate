@@ -49,15 +49,16 @@ import { num, port, str, url, zenv } from "zenvalidate";
 const env = zenv({
   DATABASE_URL: url(),
   PORT: port({ default: 3000 }),
-  LOG_LEVEL: str({ choices: ["debug", "info", "warn", "error"] }),
+  LOG_LEVEL: str({ choices: ["debug", "info", "warn", "error"], default: "info" }),
   NODE_ENV: str({ choices: ["development", "production", "test"] })
 });
 
-// Validated with Zod and TypeScript knows the exact types
-console.log(env.DATABASE_URL); // string (valid URL guaranteed)
-console.log(env.PORT); // integer (1-65535), default 3000
-console.log(env.LOG_LEVEL); // (union) 'debug' | 'info' | 'warn' | 'error'
-console.log(env.NODE_ENV); // (union) 'development' | 'production' | 'test'
+// Validated with Zod and TypeScript infers the correct types.
+
+env.DATABASE_URL; // string (valid URL guaranteed)
+env.PORT; // integer (1-65535), default 3000
+env.LOG_LEVEL; // (union) 'debug' | 'info' | 'warn' | 'error'
+env.NODE_ENV; // (union) 'development' | 'production' | 'test'
 ```
 
 ## Validators

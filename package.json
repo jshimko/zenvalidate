@@ -1,6 +1,15 @@
 {
   "name": "zenvalidate-monorepo",
   "private": true,
+  "author": "Jeremy Shimko <hey@jshimko.dev>",
+  "description": "Environment variable parsing and validation with Zod that provides a type-safe runtime env API in any Node.js and browser environments.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jshimko/zenvalidate.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jshimko/zenvalidate/issues"
+  },
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo run build && pnpm readme:sync",

@@ -117,35 +117,6 @@ zenvalidate provides the following built-in validators as well as a utility for 
 
 - **`makeValidator()`** - Create custom validators with domain-specific validation logic
 
-## Client/Server Separation
-
-Protect sensitive variables from client-side exposure:
-
-```typescript
-const env = zenv(
-  {
-    // Server-only by default
-    DATABASE_URL: url(),
-    SESSION_SECRET: str(),
-
-    // available on client (see clientSafePrefixes below)
-    NEXT_PUBLIC_APP_NAME: str(),
-    NEXT_PUBLIC_API_URL: url()
-  },
-  {
-    clientSafePrefixes: ["NEXT_PUBLIC_"]
-  }
-);
-
-// Client-side access
-if (typeof window !== "undefined") {
-  console.log(env.NEXT_PUBLIC_API_URL); // ✅ Works
-  console.log(env.DATABASE_URL); // ⚠️ undefined (protected)
-}
-```
-
-See [framework integration](#framework-integration) for more details on client/server setup and usage.
-
 ## Core Features
 
 ### Environment-Specific Defaults
@@ -190,7 +161,7 @@ const env = zenv({
 });
 // env.LOG_LEVEL - union type: "debug" | "info"  | "warn" | "error"
 
-// Optional variables with undefined defaults
+// make variables optional by explicitly setting undefined as the default value
 const env = zenv({
   OPTIONAL_API_KEY: str({ default: undefined })
 });
@@ -219,15 +190,17 @@ const env = zenv({
 
 ```typescript
 const configSchema = z.object({
-  timeout: z.number().positive().default(5000),
+  timeout: z.number().positive().default(5000), // non-zero positive number
   retries: z.number().nonnegative().default(3) // allows for 0 retries
 });
+
+type Config = z.infer<typeof configSchema>;
 
 // and then pass it to the json() validator
 const env = zenv({
   SERVICE_CONFIG: json({ schema: configSchema })
 });
-// env.SERVICE_CONFIG - fully parsed/validated JSON with type: z.infer<typeof configSchema>
+// env.SERVICE_CONFIG - fully parsed/validated JSON of type Config
 ```
 
 ## Client/Server Separation

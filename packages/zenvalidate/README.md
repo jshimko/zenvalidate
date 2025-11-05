@@ -1,938 +1,654 @@
-# zenvalidate (Zod + Env + Validate)
+# zenvalidate
 
-**Type-safe environment variable validation for TypeScript applications**
+[![Node.js](https://img.shields.io/badge/Node.js-22+-green.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-blue.svg)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A lightweight, zero-dependency (except Zod v4) library that provides bulletproof environment variable validation with full TypeScript support, client/server separation, and runtime safety for both Node.js and browser environments.
+_(Zod + env + validate)_
 
-[![Zod](https://img.shields.io/badge/Zod-v4-purple)](https://zod.dev/)
-[![Node](https://img.shields.io/badge/Node-22%2B-brightgreen)](https://nodejs.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+**Type-safe environment variable validation and strict type safety built on Zod v4.**
 
-## ✨ Key Features
+## Why zenvalidate?
 
-- **Type-safe by default** - Full TypeScript inference with zero type annotations needed
-- **Universal** - Works seamlessly in Node.js, browsers, and edge runtimes
-- **Secure client/server separation** - Prevent sensitive variables from leaking to the client
-- **Built-in validators** - 30+ validators for common formats (email, URL, UUID, JWT, etc.)
-- **Runtime validation** - Catch configuration errors before they cause problems
-- **Environment-specific defaults** - Different defaults for development, test, and production
-- **Custom validators** - Easy-to-create domain-specific validators
-- **Zero config** - Sensible defaults that just work
-- **Lightweight** - Only dependency is Zod v4! (as peerDependency)
+Managing environment variables across multiple deployments can be very error-prone and all type checking or coercion is completely manual. Zenvalidate aims to solves these problems with automatic runtime validation/coercion, full TypeScript inference, and automatic client/server separation for full stack frameworks (Next.js, Tanstack Start, etc.).
 
-## 📦 Installation
+I was originally inspired to build this project because I had been using [envalid](https://github.com/af/envalid?tab=readme-ov-file) in all of my TypeScript projects for years, but I wanted to take it a step further to support using Zod for more complex validation and transformation options using an API most JS developers are already familiar with. So big thanks to [@af](https://github.com/af) for the initial inspiration and the nice API (the public API of `zenvalidate` is nearly identical to `envalid` for most common usage).
+
+So I essentially tried to keep the same great DX, but wrote all of the validation and type inference pieces with Zod instead. This allows using battle-tested Zod validation and also adds a lot of flexibility for more complex validation and transformation logic using Zod API's that everyone is probably already familiar with and using in their projects already.
+
+### Key Features
+
+- **25+ built-in validators** - Common env var formats out of the box
+- **Environment-specific defaults** - Different defaults for dev/test/prod
+- **Full type inference** - No coercion or type annotations needed
+- **Client/server separation** - Automatic security boundaries
+- **Zero dependencies** - Only Zod v4 as a peer dependency
+- **Framework agnostic** - Works with Next.js, Vite, Remix, plain Node.js
+- **Transform functions** - Sanitize values for client exposure
+- **Strict validation** - Catch configuration errors immediately and fail fast at runtime
+
+## Quick Start
 
 ```bash
-npm install zenvalidate zod@4
-# or
-pnpm add zenvalidate zod@4
-# or
-yarn add zenvalidate zod@4
+# npm
+npm install zenvalidate zod@^4
+
+# pnpm
+pnpm add zenvalidate zod@^4
+
+# yarn
+yarn add zenvalidate zod@^4
 ```
 
-## 🚀 Quick Start
+### Basic Usage
 
 ```typescript
-import { bool, num, str, url, zenv } from "zenvalidate";
+import { num, port, str, url, zenv } from "zenvalidate";
 
-// Define and validate your environment variables
+// Define and validate your environment
 const env = zenv({
-  // Server configuration
-  NODE_ENV: str({
-    choices: ["development", "production", "test"],
-    default: "development"
-  }),
-  PORT: port({ default: 3000, devDefault: 3001, testDefault: 4000 }),
-
-  // Database
-  // Default URL's in local dev/test and a required value in production
-  DATABASE_URL: url({
-    description: "PostgreSQL connection string",
-    devDefault: "postgresql://admin:admin123@localhost:5432/mydb",
-    testDefault: "postgresql://admin:admin123@localhost:5432/testdb"
-  }),
-
-  // Feature flags with common defaults
-  ENABLE_ANALYTICS: bool({
-    default: true,
-    devDefault: false, // disabled in development
-    testDefault: false // disabled in tests
-  }),
-
-  // API configuration
-  API_KEY: str({
-    min: 32 // Minimum length validation
-  })
+  DATABASE_URL: url(),
+  PORT: port({ default: 3000 }),
+  LOG_LEVEL: str({ choices: ["debug", "info", "warn", "error"] }),
+  NODE_ENV: str({ choices: ["development", "production", "test"] })
 });
 
-// Use with full type safety
-console.log(env.PORT); // number
-console.log(env.DATABASE_URL); // string
-console.log(env.ENABLE_ANALYTICS); // boolean
-
-// Convenience properties
-if (env.isDevelopment) {
-  console.log("Running in development mode");
-}
+// Validated with Zod and TypeScript knows the exact types
+console.log(env.DATABASE_URL); // string (valid URL guaranteed)
+console.log(env.PORT); // number (1-65535), default 3000
+console.log(env.LOG_LEVEL); // (union) 'debug' | 'info' | 'warn' | 'error'
+console.log(env.NODE_ENV); // (union) 'development' | 'production' | 'test'
 ```
 
-## 🎯 Core Concepts
+## Validators
 
-### Validators
+zenvalidate provides the following built-in validators as well as a utility for creating your own custom validators with Zod directly.
 
-zenv provides a comprehensive set of validators for common environment variable types:
+### String Validators
 
-```typescript
-import {
-  bool,
-  email,
-  json,
-  num,
-  port,
-  str,
-  url,
-  uuid
-  // ... and 20+ more
-} from "zenvalidate";
-```
+- **`str()`** - Basic string validation with optional constraints (min/max length, regex, choices)
+- **`email()`** - Email address validation with optional custom regex patterns
 
-### Client/Server Separation
+### Number Validators
 
-zenv automatically protects sensitive variables from being exposed to the client:
+- **`num()`** - Number validation with automatic string-to-number coercion and constraints (min/max, integer, positive/negative, choices)
+- **`port()`** - Port number validation (1-65535 by default, customizable range)
 
-```typescript
-const env = zenv(
-  {
-    // Public variables (auto-exposed with NEXT_PUBLIC_ prefix setting below)
-    NEXT_PUBLIC_APP_NAME: str(),
-    NEXT_PUBLIC_API_URL: url(),
+### Boolean Validators
 
-    // Server-only variables (never exposed to client)
-    DATABASE_URL: url(),
-    SECRET_API_KEY: str(),
+- **`bool()`** - Boolean validation with precise string-to-boolean parsing (handles "true", "false", "1", "0", "yes", "no", "on", "off")
 
-    // Explicitly control exposure and transform values
-    INTERNAL_URL: url({
-      client: {
-        expose: true,
-        transform: (url) => url.replace("internal", "public")
-      }
-    })
-  },
-  {
-    // Auto-expose variables with these prefixes
-    clientSafePrefixes: ["NEXT_PUBLIC_", "VITE_", "PUBLIC_"]
-  }
-);
-```
+### URL/Network Validators
+
+- **`url()`** - URL validation with optional protocol and hostname restrictions
+- **`host()`** - Hostname validation with optional IP address support (IPv4/IPv6)
+- **`ipv4()`** - IPv4 address validation in dotted decimal notation
+- **`ipv6()`** - IPv6 address validation in standard notation
+
+### Identifier Validators
+
+- **`uuid()`** - UUID validation with optional version specification (v1-v8)
+- **`cuid()`** - CUID (Collision-resistant Unique Identifier) validation
+- **`cuid2()`** - CUID2 validation (improved version with better security)
+- **`ulid()`** - ULID (Universally Unique Lexicographically Sortable Identifier) validation
+- **`nanoid()`** - Nano ID validation (compact, URL-safe unique identifiers)
+- **`guid()`** - GUID validation (Microsoft's globally unique identifier format)
+- **`xid()`** - XID validation (globally unique, sortable identifiers)
+- **`ksuid()`** - KSUID validation (K-Sortable Unique Identifier with timestamp ordering)
+
+### Date/Time Validators
+
+- **`datetime()`** - ISO 8601 datetime validation with optional timezone offset and precision
+- **`isoDate()`** - ISO 8601 date validation (YYYY-MM-DD format)
+- **`isoTime()`** - ISO 8601 time validation (HH:MM:SS format) with optional precision
+- **`isoDuration()`** - ISO 8601 duration validation (e.g., P1DT2H3M4S)
+
+### Encoding Validators
+
+- **`base64()`** - Standard base64 encoded string validation
+- **`base64url()`** - URL-safe base64 encoded string validation (using - and \_ instead of + and /)
+- **`jwt()`** - JSON Web Token validation with optional algorithm specification
+
+### Data Structure Validators
+
+- **`json()`** - JSON string parsing with optional schema validation
+
+### Custom Validators
+
+- **`makeValidator()`** - Create custom validators with domain-specific validation logic
+
+## Core Features
 
 ### Environment-Specific Defaults
 
-Different defaults for different environments:
+Different defaults for development, test, and production:
 
 ```typescript
 const env = zenv({
   LOG_LEVEL: str({
     choices: ["debug", "info", "warn", "error"],
-    default: "error", // Production default
-    devDefault: "debug", // Development default
-    testDefault: "warn" // Test default
+    default: "info", // Production default
+    devDefault: "debug", // Development override
+    testDefault: "warn" // Test override
   }),
 
-  // Default database URL's in local dev/test, but required value in production
   DATABASE_URL: url({
-    description: "PostgreSQL connection string",
-    devDefault: "postgresql://admin:admin123@localhost:5432/mydb",
-    testDefault: "postgresql://admin:admin123@localhost:5432/testdb"
+    devDefault: "postgresql://localhost:5432/dev",
+    testDefault: "postgresql://localhost:5432/test"
+    // No production default, so a value is required in production
   }),
 
-  API_TIMEOUT: num({
-    default: 30000, // 30 seconds in production backend
-    devDefault: 60000, // 60 seconds in development backend
-    client: {
-      expose: true,
-      default: 10000, // 10 seconds on client in production
-      devDefault: 5000 // 5 seconds on client in dev
-    }
+  CACHE_TTL: num({
+    default: 3600, // 1 hour in production
+    devDefault: 0, // No cache in development
+    testDefault: 60 // 1 minute in tests
   })
 });
 ```
 
-### Environment-Specific Optionality
+### Type Safety
 
-Use `undefined` as a default value to make variables optional in specific environments. This provides full type safety with TypeScript knowing exactly which variables are optional:
-
-```typescript
-const env = zenv({
-  // Required in production, optional in dev/test
-  STRIPE_API_KEY: str({
-    devDefault: undefined, // Optional with undefined value in dev
-    testDefault: undefined // Optional with undefined value in test
-    // No production default = required in production
-  }),
-
-  // Optional in all environments
-  FEATURE_FLAG: str({
-    default: undefined // Optional everywhere with undefined value
-  }),
-
-  // Complex: Required in prod, uses DATABASE_URL in dev, optional/undefined in test
-  DATABASE_REPLICA_URL: str({
-    devDefault: process.env.DATABASE_URL, // Use main DB in dev
-    testDefault: undefined // Optional in test
-    // No production default = required in production
-  }),
-
-  // Works with all validator types
-  OPTIONAL_PORT: port({ default: undefined }),
-  WEBHOOK_URL: url({ default: undefined }),
-  CONFIG_JSON: json<ConfigType>({ default: undefined }),
-  SESSION_ID: uuid({ default: undefined })
-});
-
-// TypeScript provides full type safety
-if (env.STRIPE_API_KEY) {
-  // Type is string inside this block (not string | undefined)
-  processPayment(env.STRIPE_API_KEY);
-}
-
-// Optional chaining works correctly
-const webhookHost = env.WEBHOOK_URL?.split("/")[2];
-
-// Pattern matching for optional configs
-switch (env.FEATURE_FLAG) {
-  case "experimental":
-    enableExperimentalFeatures();
-    break;
-  case undefined:
-    // Feature flag not set
-    break;
-  default:
-    // Type: string (TypeScript knows undefined is handled)
-    console.log(`Unknown feature flag: ${env.FEATURE_FLAG}`);
-}
-```
-
-This pattern is particularly useful for:
-
-- **Third-party services**: API keys that aren't needed in development
-- **Optional features**: Configuration that can be enabled/disabled
-- **Gradual rollouts**: Features that are optional during testing
-- **Multi-environment deployments**: Different requirements per environment
-- **Backwards compatibility**: Making new config optional initially
-
-## 📖 Validator Reference
-
-### String Validators
-
-#### `str(options?)`
-
-Validates string values with optional constraints.
+Full TypeScript inference without type annotations:
 
 ```typescript
-// Basic string
-const env = zenv({
-  APP_NAME: str({ default: 'MyApp' })
-});
-
-// String with choices (enum)
+// Literal types with choices
 const env = zenv({
   LOG_LEVEL: str({
-    choices: ['debug', 'info', 'warn', 'error'],
-    default: 'info' // typed to only allow the choices above
+    choices: ["debug", "info", "warn", "error"],
+    devDefault: "debug",
+    default: "info"
   })
 });
-// env.LOG_LEVEL type will be: 'debug' | 'info' | 'warn' | 'error'
+// env.LOG_LEVEL - union type: "debug" | "info"  | "warn" | "error"
 
-// String with length constraints
+// make variables optional by explicitly setting undefined as the default value
 const env = zenv({
-  API_KEY: str({
-    min: 32,
-    max: 64,
-    description: 'API key must be 32-64 characters'
-  })
+  OPTIONAL_API_KEY: str({ default: undefined })
 });
-
-// String with regex pattern
-const env = zenv({
-  VERSION: str({
-    regex: /^\d+\.\d+\.\d+$/,
-    example: '1.2.3'
-  })
-});
+// env.OPTIONAL_API_KEY - string | undefined
 ```
 
-### Number Validators
-
-#### `num(options?)`
-
-Parses and validates numbers with automatic string-to-number coercion.
+**JSON values**
 
 ```typescript
-// Basic number with range
+// define the type of your JSON value
+interface Config {
+  timeout: number;
+  retries: number;
+}
+
+// and pass it to the json() validator
 const env = zenv({
-  WORKERS: num({
+  SERVICE_CONFIG: json<Config>({
+    default: { timeout: 5000, retries: 3 } // type inferred
+  })
+});
+// env.SERVICE_CONFIG - typed as Config
+```
+
+**IMPORTANT**: The above example does **NOT** validate the JSON with Zod. It simply casts the output from `JSON.parse()` as your provided type and provides type safety on defaults. If you want to also strictly validate the JSON at runtime (recommended), you should pass a custom Zod schema to the validator like this:
+
+```typescript
+const configSchema = z.object({
+  timeout: z.number().positive().default(5000), // non-zero positive number
+  retries: z.number().nonnegative().default(3) // allows for 0 retries
+});
+
+type Config = z.infer<typeof configSchema>;
+
+// and then pass it to the json() validator
+const env = zenv({
+  SERVICE_CONFIG: json({ schema: configSchema })
+});
+// env.SERVICE_CONFIG - fully parsed/validated JSON of type Config
+```
+
+## Client/Server Separation
+
+Automatic security boundaries for client/server frameworks:
+
+```typescript
+const env = zenv(
+  {
+    // Server-only by default
+    DATABASE_URL: url(),
+    SECRET_KEY: str(),
+
+    // Explicit client exposure control per variable
+    API_HOST: host({
+      client: {
+        expose: true,
+        transform: (host) => host.replace(".internal", ".public")
+      }
+    }),
+
+    // exposed to client by clientSafePrefixes option below
+    NEXT_PUBLIC_API_URL: url(), // Next.js public
+    VITE_API_URL: url(), // Vite public
+    PUBLIC_VERSION: str() // Generic public
+  },
+  {
+    clientSafePrefixes: ["NEXT_PUBLIC_", "VITE_", "PUBLIC_"]
+  }
+);
+```
+
+### Framework Integration
+
+#### Next.js (or similar)
+
+```ts
+// env.ts
+import { num, str, url, zenv } from "zenvalidate";
+
+export const env = zenv(
+  {
+    // Client-safe variables (see clientSafePrefixes config below)
+    NEXT_PUBLIC_API_URL: url({ devDefault: "http://localhost:3000/api" }),
+    NEXT_PUBLIC_APP_NAME: str({ default: "My App", devDefault: "My App (dev)" }),
+
+    // Server-only variables
+    DATABASE_URL: url({ devDefault: "postgresql://user:pass@localhost:5432/dev" }),
+    JWT_SECRET: str(),
+
+    // Runtime configuration
+    PORT: num({ default: 3000 }),
+    NODE_ENV: str({
+      choices: ["development", "production", "test"]
+    })
+  },
+  {
+    clientSafePrefixes: ["NEXT_PUBLIC_"]
+  }
+);
+```
+
+```tsx
+// app/layout.tsx - Inject client-safe env into your page <head> during SSR
+import { getClientEnvScript } from "zenvalidate";
+
+import { env } from "@/config/env";
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: getClientEnvScript(env)
+          }}
+        />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+The above script returned by `getClientEnvScript(env)` writes your client-safe values to `window.__ZENV_CLIENT__` under the hood
+and then the `env` API will get the values from there when called in the browser. Any other client/server framework that functions similarly can be configured this way.
+
+#### Node.js / Express (or any other server-side framework)
+
+```ts
+import express from "express";
+import { host, num, port, str, url, zenv } from "zenvalidate";
+
+const env = zenv({
+  // Server configuration
+  HOST: host({ default: "0.0.0.0" }),
+  PORT: port({ default: 3000 }),
+
+  // Database
+  DATABASE_URL: url({
+    protocol: /^postgres|postgresql$/, // supports regex or string
+    devDefault: "postgresql://user:pass@localhost:5432/dev"
+  }),
+  DATABASE_POOL_SIZE: num({
+    int: true,
     min: 1,
     max: 100,
-    default: 4
-  })
-});
-
-// Integer validation
-const env = zenv({
-  RETRY_COUNT: num({
-    int: true,
-    positive: true,
-    default: 3
-  })
-});
-
-// Number with choices
-const env = zenv({
-  PRIORITY: num({
-    choices: [1, 2, 3, 4, 5],
-    default: 3 // typed to only allow the choices above
-  })
-});
-// env.PRIORITY type will be: 1 | 2 | 3 | 4 | 5
-```
-
-#### `port(options?)`
-
-Specialized number validator for TCP/UDP ports.
-
-```typescript
-const env = zenv({
-  PORT: port({ default: 3000 }),
-  CUSTOM_PORT: port({
-    min: 8000,
-    max: 8999,
-    default: 8080
-  })
-});
-```
-
-### Boolean Validator
-
-#### `bool(options?)`
-
-Parses boolean values from various string representations.
-
-```typescript
-const env = zenv({
-  DEBUG: bool({ default: false }),
-  ENABLE_CACHE: bool({
-    default: true,
-    devDefault: false // Disable in development
-    testDefault: false // Disable in tests
-  })
-});
-
-// Accepts: true, false, "true", "false", "1", "0", "yes", "no", "on", "off"
-```
-
-### URL & Network Validators
-
-#### `url(options?)`
-
-Validates URLs with optional protocol and hostname restrictions.
-
-```typescript
-const env = zenv({
-  API_URL: url({
-    default: "https://api.example.com"
+    default: 10
   }),
 
-  // HTTPS only
-  SECURE_URL: url({
-    protocol: "https",
-    description: "Must use HTTPS"
+  // Redis
+  REDIS_URL: url({
+    protocol: "redis",
+    devDefault: "redis://localhost:6379"
   }),
+  CACHE_TTL: num({ default: 3600 }),
 
-  // Internal URLs only
-  INTERNAL_API: url({
-    hostname: /^(localhost|127\.0\.0\.1|.*\.internal)$/
+  // Logging defaults
+  LOG_LEVEL: str({
+    choices: ["debug", "info", "warn", "error"],
+    default: "info",
+    devDefault: "debug"
   })
+});
+
+const app = express();
+
+app.listen(env.PORT, env.HOST, () => {
+  console.log(`Server running at http://${env.HOST}:${env.PORT}`);
 });
 ```
 
-#### `email(options?)`
-
-Validates email addresses.
-
-```typescript
-const env = zenv({
-  ADMIN_EMAIL: email({
-    default: "admin@example.com"
-  }),
-
-  // Custom regex for corporate emails
-  CORP_EMAIL: email({
-    regex: /@mycompany\.com$/,
-    description: "Must be a company email"
-  })
-});
-```
-
-#### `host(options?)`
-
-Validates hostnames and IP addresses.
-
-```typescript
-const env = zenv({
-  DATABASE_HOST: host({
-    default: "localhost"
-  }),
-
-  // Hostname only (no IPs)
-  API_HOST: host({
-    allowIP: false
-  }),
-
-  // IPv4 only
-  IPV4_HOST: host({
-    ipv4Only: true,
-    default: "127.0.0.1"
-  })
-});
-```
-
-### JSON Validator
-
-#### `json<T>(options?)`
-
-Parses and validates JSON strings with optional schema validation.
-
-```typescript
-import { z } from 'zod/v4';
-
-// Basic JSON parsing
-const env = zenv({
-  CONFIG: json<{ enabled: boolean }>({
-    default: { enabled: true }
-  })
-});
-
-// JSON with Zod schema validation
-const configSchema = z.object({
-  apiKey: z.string(),
-  timeout: z.number(),
-  features: z.array(z.string())
-});
-
-const env = zenv({
-  APP_CONFIG: json({
-    schema: configSchema,
-    default: {
-      apiKey: 'default-key',
-      timeout: 5000,
-      features: []
-    }
-  })
-});
-
-// Array parsing
-const env = zenv({
-  ALLOWED_ORIGINS: json<string[]>({
-    default: ['http://localhost:3000']
-  })
-});
-```
-
-### Format Validators
-
-zenv includes validators for common data formats:
-
-```typescript
-const env = zenv({
-  // UUIDs
-  SESSION_ID: uuid(), // Any UUID version
-  REQUEST_ID: uuid({ version: "v4" }), // UUID v4 specifically
-
-  // Date and time
-  START_DATE: isoDate(), // YYYY-MM-DD
-  START_TIME: isoTime(), // HH:MM:SS
-  CREATED_AT: datetime(), // ISO 8601 datetime
-  CACHE_TTL: isoDuration(), // ISO 8601 duration (e.g., PT1H)
-
-  // Encoding
-  API_SECRET: base64(), // Standard base64
-  URL_TOKEN: base64url(), // URL-safe base64
-
-  // Tokens and IDs
-  AUTH_TOKEN: jwt(), // JSON Web Token
-  AUTH_TOKEN_HS256: jwt({ alg: "HS256" }), // JWT with specific algorithm
-
-  // Various ID formats
-  DOC_ID: cuid(), // CUID
-  SESSION_ID: cuid2(), // CUID2 (more secure)
-  EVENT_ID: ulid(), // ULID (sortable)
-  SHORT_ID: nanoid(), // Nano ID
-  RESOURCE_ID: guid(), // GUID/UUID Microsoft format
-  NODE_ID: xid(), // XID
-  REQUEST_ID: ksuid(), // KSUID (time-sortable)
-
-  // IP addresses
-  SERVER_IP: ipv4(), // IPv4 address
-  IPV6_ADDR: ipv6() // IPv6 address
-});
-```
-
-## 🔧 Advanced Usage
+## Advanced Usage
 
 ### Custom Validators
 
-Create domain-specific validators with the `makeValidator` function:
+Create domain-specific validators:
 
 ```typescript
 import { makeValidator } from "zenvalidate";
+import { z } from "zod";
 
-// Semantic version validator
-const semver = makeValidator<string>({
-  validator: (input) => /^\d+\.\d+\.\d+$/.test(input),
+// Simple custom validator for a semver string
+// makeValidator<InputType, OutputType>
+// (input type is always string, output type should match your parsed/validated output)
+const semver = makeValidator<string, string>({
+  // provide a custom Zod schema
+  schema: z.string().regex(/^\d+\.\d+\.\d+$/),
+  // or write a custom validation function that returns a boolean or throws
+  // validator: (value) => /^\d+\.\d+\.\d+$/.test(value),
+  message: "Invalid semantic version",
   description: "Semantic version (e.g., 1.2.3)"
 });
 
-// Base64 to Buffer transformer
-const secret = makeValidator<string, Buffer>({
-  validator: (input) => {
-    try {
-      return Buffer.from(input, "base64").length === 32;
-    } catch {
-      return false;
-    }
-  },
-  transform: (input) => Buffer.from(input, "base64"),
-  description: "32-byte base64 encoded secret"
-});
-
-// Use in your environment
+// Use in your schema
 const env = zenv({
-  APP_VERSION: semver({ default: "1.0.0" }),
-  ENCRYPTION_KEY: secret()
+  APP_VERSION: semver({ devDefault: "0.0.0" })
 });
 ```
 
-### Client-Safe Prefixes
+### Error Handling
 
-Automatically expose variables to the client based on naming conventions:
+Configure error behavior:
 
 ```typescript
-const env = zenv(
-  {
-    // Auto-exposed to client (NEXT_PUBLIC_ prefix)
-    NEXT_PUBLIC_APP_NAME: str(),
-    NEXT_PUBLIC_API_URL: url(),
+const env = zenv(specs, {
+  // Error handling strategies
+  onError: "exit", // Exit process (default on server)
+  onError: "throw", // Throw an error
+  onError: "return", // Log warnings and just return invalid value (useful for testing, build time, etc.)
 
-    // Auto-exposed (VITE_ prefix)
-    VITE_APP_TITLE: str(),
+  // Client access errors
+  // Values are always undefined on client by default, but you can customize
+  // what happens if client side code tries to access a server-only variable.
+  onClientAccessError: "throw", // Throw on access (strict)
+  onClientAccessError: "warn", // Console warning (default dev)
+  onClientAccessError: "ignore", // Silent (default prod)
 
-    // Server-only (no special prefix)
-    DATABASE_URL: url(),
-    SECRET_KEY: str()
-  },
-  {
-    // Configure auto-exposure prefixes
-    clientSafePrefixes: ["NEXT_PUBLIC_", "VITE_", "PUBLIC_"],
+  // Validation options
+  strict: true, // Prevent access to un-validated vars
+  env: customEnvObject // Use custom env source (testing, etc.), process.env by default
+});
 
-    // Force certain prefixes to be server-only
-    serverOnlyPrefixes: ["SECRET_", "PRIVATE_", "DATABASE_"]
+// Handle errors programmatically
+try {
+  const env = zenv(specs, { onError: "throw" });
+} catch (error) {
+  if (error instanceof ValidationError) {
+    console.error("Validation failed:", error.errors);
   }
-);
+}
 ```
 
-### Client Value Transformation
+### Complex Validation
 
-Transform values before exposing them to the client:
+Leverage Zod's full power for complex validation:
 
 ```typescript
 const env = zenv({
-  INTERNAL_API_URL: url({
-    default: "http://internal-api:3000",
-    client: {
-      expose: true,
-      // Transform internal URL to public URL for client
-      transform: (url) => url.replace("internal-api:3000", "api.example.com")
+  // Number constraints
+  PORT: port({ min: 3000, max: 9999, default: 3000 }),
+  WORKERS: num({ int: true, min: 1, max: 16 }),
+  TIMEOUT: num({ positive: true, int: true, default: 30000 }),
+
+  // String constraints
+  ADMIN_EMAIL: email({
+    regex: /@mycompany\.com$/,
+    description: "Must be a company email address"
+  }),
+  STRIPE_API_KEY: str({
+    regex: /^sk-[a-zA-Z0-9]{48}$/,
+    description: "Stripe secret key"
+  }),
+
+  // JSON with schema validation
+  FEATURE_FLAGS: json({
+    schema: z.object({
+      newUI: z.boolean(),
+      betaFeatures: z.boolean(),
+      maxUploadSize: z.number().positive().optional()
+    }),
+    default: {
+      newUI: false,
+      betaFeatures: false,
+      maxUploadSize: 10485760
+    },
+    // different defaults in dev
+    devDefault: {
+      newUI: true,
+      betaFeatures: true
     }
   }),
 
-  DEBUG_INFO: json({
-    default: { verbose: true, details: "sensitive" },
+  // Transform functions
+  API_ENDPOINT: url({
+    transform: (url) => url.replace("http://", "https://"),
     client: {
       expose: true,
-      // Strip sensitive data for client
-      transform: (data) => ({ verbose: data.verbose })
+      transform: (url) => url.replace("/internal", "/public")
     }
   })
 });
 ```
 
-### Error Handling Strategies
-
-Configure how validation errors are handled:
-
-```typescript
-// Development: Show warnings but continue
-const env = zenv({
-  API_KEY: str()
-}, {
-  onError: 'return',  // Return partial results on error
-  onClientAccessError: 'warn'  // Warn when accessing server-only vars
-});
-
-// Production: Fail fast
-const env = zenv({
-  API_KEY: str()
-}, {
-  onError: 'exit',  // Exit process on error (Node.js)
-  onClientAccessError: 'ignore'  // Silently return undefined
-});
-
-// Testing: Throw exceptions
-const env = zenv({
-  API_KEY: str()
-}, {
-  onError: 'throw',  // Throw exception on error
-  reporter: (errors) => {
-    // Custom error reporting
-    console.error('Validation failed:', errors);
-    throw new Error('Environment validation failed');
-  }
-});
-```
-
-### Strict Mode
-
-Prevent access to non-validated environment variables:
-
-```typescript
-const env = zenv(
-  {
-    VALIDATED_VAR: str()
-  },
-  {
-    strict: true // Default
-  }
-);
-
-// ✅ Works
-console.log(env.VALIDATED_VAR);
-
-// ❌ Throws ReferenceError
-console.log(env.UNVALIDATED_VAR);
-```
-
-## 🎨 TypeScript Support
-
-zenv provides complete TypeScript inference without any type annotations:
-
-```typescript
-// Define your environment
-const env = zenv({
-  PORT: num(),
-  API_URL: url(),
-  FEATURES: json<string[]>(),
-  LOG_LEVEL: str({ choices: ["debug", "info", "error"] }),
-  ENABLE_CACHE: bool()
-});
-
-// TypeScript knows all the types
-type Env = typeof env;
-// {
-//   PORT: number;
-//   API_URL: string;
-//   FEATURES: string[];
-//   LOG_LEVEL: 'debug' | 'info' | 'error';
-//   ENABLE_CACHE: boolean;
-//   isDevelopment: boolean;
-//   isProduction: boolean;
-//   // ... other convenience properties
-// }
-
-// Autocomplete and type checking work perfectly
-env.PORT.toFixed(2); // ✅ number methods available
-env.LOG_LEVEL === "debug"; // ✅ literal type checking
-env.FEATURES.map((f) => f.toUpperCase()); // ✅ array methods available
-```
-
-### Type Utilities
-
-Extract types from validators and specs:
-
-```typescript
-import type { InferValidatorType, InferZenvType } from "zenvalidate";
-
-// Get type from a single validator
-const portValidator = port({ default: 3000 });
-type PortType = InferValidatorType<typeof portValidator>; // number
-
-// Get type from entire spec
-const spec = {
-  PORT: num(),
-  API_URL: url(),
-  DEBUG: bool()
-};
-type EnvType = InferZenvType<typeof spec>;
-// { PORT: number; API_URL: string; DEBUG: boolean }
-```
-
-## 🏗️ Runtime Utilities
-
-The `runtime` object provides environment detection utilities:
-
-```typescript
-import { runtime } from "zenvalidate";
-
-// Environment detection
-if (runtime.isServer) {
-  // Server-only code
-  const fs = await import("fs");
-}
-
-if (runtime.isClient) {
-  // Client-only code
-  window.localStorage.setItem("key", "value");
-}
-
-// NODE_ENV detection
-if (runtime.isDevelopment) {
-  console.log("Development mode");
-}
-
-if (runtime.isProduction) {
-  enableOptimizations();
-}
-
-if (runtime.isTest) {
-  useMockData();
-}
-
-// Access raw environment
-const rawValue = runtime.env.SOME_VAR;
-
-// Get defaults based on environment
-const errorBehavior = runtime.defaultErrorBehavior;
-// 'exit' on server, 'throw' on client
-```
-
-## 🔒 Security Best Practices
-
-### 1. Never Expose Secrets
-
-```typescript
-const env = zenv(
-  {
-    // ❌ Bad: Could expose secret if using auto-exposure
-    PUBLIC_API_KEY: str(),
-
-    // ✅ Good: Explicitly marked as server-only
-    API_KEY: str({
-      client: { expose: false }
-    }),
-
-    // ✅ Good: Use server-only prefix
-    SECRET_API_KEY: str()
-  },
-  {
-    serverOnlyPrefixes: ["SECRET_", "PRIVATE_"]
-  }
-);
-```
-
-### 2. Validate Early
-
-```typescript
-// ✅ Good: Validate at startup
-const env = zenv(
-  {
-    DATABASE_URL: url()
-  },
-  {
-    onError: "exit" // Fail fast in production
-  }
-);
-
-// Then use throughout your app
-export default env;
-```
-
-### 3. Use Appropriate Validators
-
-```typescript
-const env = zenv({
-  // ✅ Good: Use specific validators
-  EMAIL: email(),
-  API_URL: url({ protocol: /^https$/ }),
-  PORT: port(),
-
-  // ❌ Bad: Too permissive
-  EMAIL_STRING: str(), // No email validation
-  API_URL_STRING: str(), // No URL validation
-  PORT_STRING: str() // No port range validation
-});
-```
-
-### 4. Transform Sensitive Data for Client
-
-```typescript
-const env = zenv({
-  DATABASE_URL: url({
-    client: {
-      expose: true,
-      // Only expose the database type, not credentials
-      transform: (url) => new URL(url).protocol.replace(":", "")
-    }
-  })
-});
-```
-
-## 🔄 Migration Guide
-
-### From `dotenv`
-
-```typescript
-// Before (dotenv)
-import dotenv from 'dotenv';
-dotenv.config();
-
-const port = parseInt(process.env.PORT || '3000');
-const debug = process.env.DEBUG === 'true';
-
-// After (zenv)
-import { zenv, num, bool } from 'zenvalidate';
-
-const env = zenv({
-  PORT: num({ default: 3000 }),
-  DEBUG: bool({ default: false })
-});
-
-const port = env.PORT;  // Already parsed as number
-const debug = env.DEBUG;  // Already parsed as boolean
-```
-
-### From `envalid`
-
-```typescript
-// Before (envalid)
-import { cleanEnv, str, port } from 'envalid';
-
-const env = cleanEnv(process.env, {
-  PORT: port({ default: 3000 }),
-  NODE_ENV: str({ choices: ['development', 'production'] })
-});
-
-// After (zenv)
-import { zenv, port, str } from 'zenvalidate';
-
-const env = zenv({
-  PORT: port({ default: 3000 }),
-  NODE_ENV: str({ choices: ['development', 'production'] })
-});
-```
-
-### From Plain `process.env`
-
-```typescript
-// Before (unsafe)
-const port = process.env.PORT; // string | undefined
-const maxRetries = process.env.MAX_RETRIES; // string | undefined
-
-if (port) {
-  server.listen(parseInt(port)); // Manual parsing
-}
-
-// After (type-safe)
-const env = zenv({
-  PORT: port({ default: 3000 }),
-  MAX_RETRIES: num({ default: 3, min: 1, max: 10 })
-});
-
-server.listen(env.PORT); // Type-safe, validated, parsed
-```
-
-## 📚 API Reference
-
-### Main Function
-
-#### `zenv(specs, options?)`
-
-Validates environment variables against a specification.
-
-**Parameters:**
-
-- `specs`: Record of variable names to validators
-- `options`: Optional configuration object
-
-**Options:**
-
-| Option                | Type                            | Default                               | Description                               |
-| --------------------- | ------------------------------- | ------------------------------------- | ----------------------------------------- |
-| `env`                 | `NodeJS.ProcessEnv`             | `process.env`                         | Environment source                        |
-| `clientSafePrefixes`  | `string[]`                      | `[]`                                  | Prefixes for auto-exposed variables       |
-| `serverOnlyPrefixes`  | `string[]`                      | `[]`                                  | Prefixes for forced server-only variables |
-| `onError`             | `'throw' \| 'exit' \| 'return'` | `'exit'` (server), `'throw'` (client) | Error handling strategy                   |
-| `onClientAccessError` | `'throw' \| 'warn' \| 'ignore'` | `'warn'` (dev), `'ignore'` (prod)     | Client access error handling              |
-| `reporter`            | `function \| null`              | `null`                                | Custom error reporter                     |
-| `strict`              | `boolean`                       | `true`                                | Prevent access to non-validated variables |
+## API Reference
 
 ### Validator Options
 
-#### Common Options (BaseOptions)
+All validators share common base options:
 
-Available to all validators:
+```typescript
+interface BaseOptions<T> {
+  default?: T; // Default value
+  devDefault?: T; // Override when NODE_ENV=development
+  testDefault?: T; // Override when NODE_ENV=test
+  description?: string; // Documentation
+  example?: string; // Example value
+  client?: {
+    expose: boolean; // Allow client access
+    transform?: (v: T) => T; // Transform for client
+    default?: T; // Client-specific default
+    devDefault?: T; // Client-specific dev default
+  };
+}
+```
 
-| Option        | Type           | Description                       |
-| ------------- | -------------- | --------------------------------- |
-| `default`     | `T`            | Default value in production       |
-| `devDefault`  | `T`            | Default value in development      |
-| `testDefault` | `T`            | Default value in test environment |
-| `description` | `string`       | Human-readable description        |
-| `example`     | `string`       | Example value for documentation   |
-| `client`      | `ClientConfig` | Client-specific configuration     |
+#### String Options
 
-#### ClientConfig Options
+```typescript
+interface StringOptions extends BaseOptions<string> {
+  choices?: readonly string[]; // Allowed values (creates union type)
+  min?: number; // Minimum length
+  max?: number; // Maximum length
+  regex?: RegExp; // Pattern match
+}
+```
 
-| Option       | Type              | Description                     |
-| ------------ | ----------------- | ------------------------------- |
-| `expose`     | `boolean`         | Whether to expose to client     |
-| `transform`  | `(value: T) => T` | Transform function for client   |
-| `default`    | `T`               | Override default for client     |
-| `devDefault` | `T`               | Override dev default for client |
+#### Number Options
 
-### Built-in Validators
+```typescript
+interface NumberOptions extends BaseOptions<number> {
+  choices?: readonly number[]; // Allowed values (creates union type)
+  min?: number; // Minimum value
+  max?: number; // Maximum value
+  int?: boolean; // Integer only
+  positive?: boolean; // Positive only
+  negative?: boolean; // Negative only
+}
+```
 
-| Validator       | Description           | Specific Options                                       |
-| --------------- | --------------------- | ------------------------------------------------------ |
-| `str()`         | String validation     | `choices`, `min`, `max`, `regex`                       |
-| `num()`         | Number validation     | `choices`, `min`, `max`, `int`, `positive`, `negative` |
-| `bool()`        | Boolean validation    | -                                                      |
-| `json()`        | JSON parsing          | `schema` (Zod schema)                                  |
-| `email()`       | Email validation      | `regex`                                                |
-| `url()`         | URL validation        | `protocol`, `hostname`                                 |
-| `host()`        | Host/IP validation    | `allowIP`, `ipv4Only`, `ipv6Only`                      |
-| `port()`        | Port number (1-65535) | `min`, `max`                                           |
-| `uuid()`        | UUID validation       | `version`                                              |
-| `ipv4()`        | IPv4 address          | -                                                      |
-| `ipv6()`        | IPv6 address          | -                                                      |
-| `datetime()`    | ISO 8601 datetime     | `offset`, `local`, `precision`                         |
-| `isoDate()`     | ISO date (YYYY-MM-DD) | -                                                      |
-| `isoTime()`     | ISO time (HH:MM:SS)   | `precision`                                            |
-| `isoDuration()` | ISO 8601 duration     | -                                                      |
-| `base64()`      | Base64 encoding       | -                                                      |
-| `base64url()`   | URL-safe base64       | -                                                      |
-| `jwt()`         | JSON Web Token        | `alg`                                                  |
-| `cuid()`        | CUID identifier       | -                                                      |
-| `cuid2()`       | CUID2 identifier      | -                                                      |
-| `ulid()`        | ULID identifier       | -                                                      |
-| `nanoid()`      | Nano ID               | -                                                      |
-| `guid()`        | GUID/UUID Microsoft   | -                                                      |
-| `xid()`         | XID identifier        | -                                                      |
-| `ksuid()`       | KSUID identifier      | -                                                      |
+#### Email Options
 
-## 🤝 Contributing
+```typescript
+interface EmailOptions extends BaseOptions<string> {
+  regex?: RegExp; // Custom email pattern (overrides default)
+}
+```
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+#### URL Options
 
-## 📄 License
+```typescript
+interface UrlOptions extends BaseOptions<string> {
+  protocol?: string | RegExp; // Required protocol (e.g., "https" or /^https$/)
+  hostname?: string | RegExp; // Required hostname (e.g., "example.com" or /\.example\.com$/)
+}
+```
 
-MIT © Jeremy Shimko
+#### Host Options
+
+```typescript
+interface HostOptions extends BaseOptions<string> {
+  allowIP?: boolean; // Allow IP addresses (default: true)
+  ipv4Only?: boolean; // Restrict to IPv4 only
+  ipv6Only?: boolean; // Restrict to IPv6 only
+}
+```
+
+#### Port Options
+
+```typescript
+interface PortOptions extends BaseOptions<number> {
+  min?: number; // Minimum port (default: 1)
+  max?: number; // Maximum port (default: 65535)
+}
+```
+
+#### JSON Options
+
+```typescript
+interface JsonOptions<T> extends BaseOptions<T> {
+  schema?: z.ZodType<T>; // Zod schema for validation
+}
+```
+
+#### UUID Options
+
+```typescript
+interface UUIDOptions extends BaseOptions<string> {
+  version?: "v1" | "v2" | "v3" | "v4" | "v5" | "v6" | "v7" | "v8"; // UUID version
+}
+```
+
+#### Datetime Options
+
+```typescript
+interface DatetimeOptions extends BaseOptions<string> {
+  offset?: boolean; // Require timezone offset
+  local?: boolean; // Allow local time (no timezone)
+  precision?: number; // Decimal precision for seconds (0-9)
+}
+```
+
+#### ISO Time Options
+
+```typescript
+interface ISOTimeOptions extends BaseOptions<string> {
+  precision?: number; // Decimal precision for seconds (0-9)
+}
+```
+
+#### JWT Options
+
+```typescript
+interface JWTOptions extends BaseOptions<string> {
+  alg?: string; // Optional algorithm (e.g., "HS256", "RS256")
+}
+```
+
+## Migration Guide
+
+### From envalid
+
+Almost identical API!
+
+```typescript
+// Before (envalid)
+import { cleanEnv, str, port, bool } from "envalid";
+
+const env = cleanEnv(process.env, {
+  PORT: port({ default: 3000 }),
+  NODE_ENV: str({ choices: ["development", "production", "test"] }),
+  DEBUG: bool({ default: false })
+});
+
+// After (zenvalidate)
+import { zenv, port, str, bool } from "zenvalidate";
+
+// cleanEnv -> zenv and passing process.env is optional
+// That's it!
+const env = zenv({
+  PORT: port({ default: 3000 }),
+  NODE_ENV: str({ choices: ["development", "production", "test"] }),
+  DEBUG: bool({ default: false })
+});
+```
+
+### From dotenv
+
+```typescript
+// Before (dotenv)
+require("dotenv").config();
+const port = parseInt(process.env.PORT || "3000");
+const debug = process.env.DEBUG === "true";
+const apiUrl = process.env.API_URL; // Could be undefined
+
+// After (zenvalidate)
+import { zenv, port, bool, url } from "zenvalidate";
+
+const env = zenv({
+  PORT: port({ default: 3000 }),
+  DEBUG: bool({ default: false, devDefault: true }),
+  API_URL: url({ devDefault: "http://localhost:3000", default: "https://api.example.com" })
+});
+// Types are all guaranteed, validation is automatic, defaults are applied automatically based on NODE_ENV
+```
+
+### From plain process.env
+
+```typescript
+// Before (manual validation)
+const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+if (isNaN(port)) throw new Error("Invalid PORT");
+
+const apiUrl = process.env.API_URL;
+if (!apiUrl) throw new Error("API_URL required");
+if (!apiUrl.startsWith("https://")) throw new Error("API_URL must be HTTPS");
+
+// After (zenvalidate)
+const env = zenv({
+  PORT: port({ default: 3000 }),
+  API_URL: url({ protocol: "https" })
+});
+// Validation is declarative and type-safe
+```
+
+## Performance
+
+- **One-time validation** - Runs once at startup
+- **Zero runtime overhead** - After validation, access is direct property lookup
+- **WeakMap metadata** - Efficient storage without schema pollution
+- **Proxy-based protection** - Minimal overhead for client/server separation
+
+## Links
+
+- **npm**: https://www.npmjs.com/package/zenvalidate
+- **GitHub**: https://github.com/jshimko/zenvalidate
+- **Issues**: https://github.com/jshimko/zenvalidate/issues
+
+## License
+
+MIT © 2025 Jeremy Shimko

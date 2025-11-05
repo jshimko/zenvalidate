@@ -8,9 +8,7 @@ _(Zod + env + validate)_
 
 **Type-safe environment variable validation and strict type safety built on Zod v4.**
 
-## Why zenvalidate?
-
-Managing environment variables across multiple deployments can be very error-prone and all type checking or coercion is completely manual. Zenvalidate aims to solves these problems with automatic runtime validation/coercion, full TypeScript inference, and automatic client/server separation for full stack frameworks (Next.js, Tanstack Start, etc.).
+## Why?
 
 I was originally inspired to build this project because I had been using [envalid](https://github.com/af/envalid?tab=readme-ov-file) in all of my TypeScript projects for years, but I wanted to take it a step further to support using Zod for more complex validation and transformation options using an API most JS developers are already familiar with. So big thanks to [@af](https://github.com/af) for the initial inspiration and the nice API (the public API of `zenvalidate` is nearly identical to `envalid` for most common usage).
 

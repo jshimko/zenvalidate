@@ -1,5 +1,11 @@
 # zenvalidate
 
+## 1.1.0
+
+### Minor Changes
+
+- Big refactor/rewrite of the README documentation
+
 ## 1.0.2
 
 ### Patch Changes

@@ -27,12 +27,12 @@
     "release": "changeset publish",
     "deps:check": "./scripts/updateAllDeps.sh ncu -t minor",
     "deps:update": "./scripts/updateAllDeps.sh",
-    "deps:check:major": "./scripts/updateAllDeps.sh ncu -t major",
+    "deps:check:major": "./scripts/updateAllDeps.sh ncu",
     "deps:update:major": "./scripts/updateAllDeps.sh ncu -u"
   },
   "devDependencies": {
     "@changesets/cli": "2.29.7",
-    "@trivago/prettier-plugin-sort-imports": "5.2.2",
+    "@trivago/prettier-plugin-sort-imports": "6.0.0",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/prettier-config": "workspace:*",
     "eslint": "9.39.1",

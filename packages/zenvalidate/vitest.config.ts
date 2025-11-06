@@ -11,7 +11,6 @@ export default defineConfig({
 
     coverage: {
       enabled: true,
-      all: false,
       provider: "v8",
       reporter: ["text", "json", "html"],
       exclude: [

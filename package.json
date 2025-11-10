@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "2.29.7",
-    "@trivago/prettier-plugin-sort-imports": "5.2.2",
+    "@trivago/prettier-plugin-sort-imports": "6.0.0",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/prettier-config": "workspace:*",
     "eslint": "9.39.1",

@@ -32,12 +32,12 @@
   },
   "devDependencies": {
     "@changesets/cli": "2.29.7",
-    "@trivago/prettier-plugin-sort-imports": "5.2.2",
+    "@trivago/prettier-plugin-sort-imports": "6.0.0",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/prettier-config": "workspace:*",
     "eslint": "9.39.1",
     "prettier": "3.6.2",
-    "turbo": "2.6.0",
+    "turbo": "2.6.1",
     "typescript": "5.9.3"
   },
   "prettier": "@workspace/prettier-config",

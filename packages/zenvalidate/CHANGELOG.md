@@ -1,5 +1,11 @@
 # zenvalidate
 
+## 1.3.0
+
+### Minor Changes
+
+- Improve core type guards/validators and get test coverage up to 98%
+
 ## 1.2.0
 
 ### Minor Changes

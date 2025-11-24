@@ -20,7 +20,7 @@ jobs:
         node: ["22", "24"]
     name: Run code quality checks on Node ${{ matrix.node }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 

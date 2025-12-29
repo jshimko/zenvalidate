@@ -31,13 +31,13 @@
     "deps:update:major": "./scripts/updateAllDeps.sh ncu -u"
   },
   "devDependencies": {
-    "@changesets/cli": "2.29.7",
+    "@changesets/cli": "2.29.8",
     "@trivago/prettier-plugin-sort-imports": "6.0.0",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/prettier-config": "workspace:*",
-    "eslint": "9.39.1",
-    "prettier": "3.6.2",
-    "turbo": "2.6.1",
+    "eslint": "9.39.2",
+    "prettier": "3.7.4",
+    "turbo": "2.7.2",
     "typescript": "5.9.3"
   },
   "prettier": "@workspace/prettier-config",

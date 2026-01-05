@@ -5,8 +5,8 @@
   "type": "module",
   "main": "index.mjs",
   "dependencies": {
-    "@trivago/prettier-plugin-sort-imports": "6.0.0",
-    "prettier": "3.6.2"
+    "@trivago/prettier-plugin-sort-imports": "6.0.1",
+    "prettier": "3.7.4"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*"

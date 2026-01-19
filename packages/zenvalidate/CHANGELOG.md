@@ -1,5 +1,11 @@
 # zenvalidate
 
+## 1.4.0
+
+### Minor Changes
+
+- minor deps updates and lint fixes in tests
+
 ## 1.3.0
 
 ### Minor Changes

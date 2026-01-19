@@ -35,17 +35,17 @@
     "zod"
   ],
   "devDependencies": {
-    "@types/node": "24.10.1",
-    "@vitest/coverage-v8": "4.0.12",
-    "@vitest/ui": "4.0.12",
+    "@types/node": "24.10.9",
+    "@vitest/coverage-v8": "4.0.17",
+    "@vitest/ui": "4.0.17",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/prettier-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "tsd": "0.33.0",
     "typescript": "5.9.3",
-    "vitest": "4.0.12",
-    "zod": "4.1.12",
-    "zshy": "0.5.0"
+    "vitest": "4.0.17",
+    "zod": "4.3.5",
+    "zshy": "0.7.0"
   },
   "peerDependencies": {
     "zod": "^4"

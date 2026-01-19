@@ -156,11 +156,10 @@ describe("Core Module - zenv()", () => {
       }).toThrow();
 
       expect(reporterMock).toHaveBeenCalled();
+      expect(reporterMock.mock.calls).toHaveLength(1);
       const call = reporterMock.mock.calls[0];
-      if (call) {
-        expect(call[0]).toBeInstanceOf(Array); // errors array
-        expect(call[1]).toBeDefined(); // env object
-      }
+      expect(call?.[0]).toBeInstanceOf(Array); // errors array
+      expect(call?.[1]).toBeDefined(); // env object
     });
   });
 
@@ -846,6 +845,7 @@ describe("Core Module - zenv()", () => {
         NODE_ENV: "test"
       });
 
+      let caughtError: unknown;
       try {
         zenv(
           {
@@ -856,18 +856,17 @@ describe("Core Module - zenv()", () => {
           },
           { onError: "throw" }
         );
-        expect.fail("Should have thrown");
       } catch (error) {
-        expect(error).toBeInstanceOf(ZenvError);
-        if (error instanceof ZenvError) {
-          expect(error.message).toContain("validation failed");
-          // Check that the missing variables are reported in the errors
-          const errorMessages = error.zodErrors?.map((e) => e.message).join(" ") ?? "";
-          expect(errorMessages).toContain("REQUIRED_VAR_1");
-          expect(errorMessages).toContain("REQUIRED_VAR_2");
-          expect(errorMessages).toContain("REQUIRED_VAR_3");
-        }
+        caughtError = error;
       }
+      expect(caughtError).toBeInstanceOf(ZenvError);
+      const zenvErr = caughtError as ZenvError;
+      expect(zenvErr.message).toContain("validation failed");
+      // Check that the missing variables are reported in the errors
+      const errorMessages = zenvErr.zodErrors?.map((e) => e.message).join(" ") ?? "";
+      expect(errorMessages).toContain("REQUIRED_VAR_1");
+      expect(errorMessages).toContain("REQUIRED_VAR_2");
+      expect(errorMessages).toContain("REQUIRED_VAR_3");
     });
 
     it("should use custom reporter for error formatting", () => {

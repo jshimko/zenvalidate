@@ -1,7 +1,7 @@
 # zenvalidate
 
 [![Node.js](https://img.shields.io/badge/Node.js-22+-green.svg)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-blue.svg)](https://www.typescriptlang.org/)
+[![Zod ^4](https://img.shields.io/badge/Zod-v4-blue.svg)](https://zod.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 _(Zod + env + validate)_

@@ -44,6 +44,7 @@ describe("core immutability and protection", () => {
     const { restore: suppressRestore } = suppressConsole();
 
     // Try with string instead of Zod schema
+    let error1: unknown;
     try {
       zenv(
         {
@@ -54,16 +55,16 @@ describe("core immutability and protection", () => {
           onError: "throw"
         }
       );
-      expect(true).toBe(false); // Should not reach here
     } catch (error) {
-      expect(error).toBeInstanceOf(ZenvError);
-      if (error instanceof ZenvError) {
-        expect(error.message).toBe("Environment validation failed");
-        expect(error.zodErrors?.[0]?.issues[0]?.message).toContain('Invalid validator for "PORT": must be a Zod schema');
-      }
+      error1 = error;
     }
+    expect(error1).toBeInstanceOf(ZenvError);
+    const zenvErr1 = error1 as ZenvError;
+    expect(zenvErr1.message).toBe("Environment validation failed");
+    expect(zenvErr1.zodErrors?.[0]?.issues[0]?.message).toContain('Invalid validator for "PORT": must be a Zod schema');
 
     // Try with number
+    let error2: unknown;
     try {
       zenv(
         {
@@ -74,15 +75,15 @@ describe("core immutability and protection", () => {
           onError: "throw"
         }
       );
-      expect(true).toBe(false);
     } catch (error) {
-      expect(error).toBeInstanceOf(ZenvError);
-      if (error instanceof ZenvError) {
-        expect(error.zodErrors?.[0]?.issues[0]?.message).toContain('Invalid validator for "PORT": must be a Zod schema');
-      }
+      error2 = error;
     }
+    expect(error2).toBeInstanceOf(ZenvError);
+    const zenvErr2 = error2 as ZenvError;
+    expect(zenvErr2.zodErrors?.[0]?.issues[0]?.message).toContain('Invalid validator for "PORT": must be a Zod schema');
 
     // Try with plain object
+    let error3: unknown;
     try {
       zenv(
         {
@@ -93,15 +94,15 @@ describe("core immutability and protection", () => {
           onError: "throw"
         }
       );
-      expect(true).toBe(false);
     } catch (error) {
-      expect(error).toBeInstanceOf(ZenvError);
-      if (error instanceof ZenvError) {
-        expect(error.zodErrors?.[0]?.issues[0]?.message).toContain('Invalid validator for "PORT": must be a Zod schema');
-      }
+      error3 = error;
     }
+    expect(error3).toBeInstanceOf(ZenvError);
+    const zenvErr3 = error3 as ZenvError;
+    expect(zenvErr3.zodErrors?.[0]?.issues[0]?.message).toContain('Invalid validator for "PORT": must be a Zod schema');
 
     // Try with function that returns non-Zod
+    let error4: unknown;
     try {
       zenv(
         {
@@ -112,13 +113,12 @@ describe("core immutability and protection", () => {
           onError: "throw"
         }
       );
-      expect(true).toBe(false);
     } catch (error) {
-      expect(error).toBeInstanceOf(ZenvError);
-      if (error instanceof ZenvError) {
-        expect(error.zodErrors?.[0]?.issues[0]?.message).toContain('Invalid validator for "PORT": must be a Zod schema');
-      }
+      error4 = error;
     }
+    expect(error4).toBeInstanceOf(ZenvError);
+    const zenvErr4 = error4 as ZenvError;
+    expect(zenvErr4.zodErrors?.[0]?.issues[0]?.message).toContain('Invalid validator for "PORT": must be a Zod schema');
 
     suppressRestore();
     env.restore();
@@ -131,6 +131,7 @@ describe("core immutability and protection", () => {
 
     const { restore: suppressRestore } = suppressConsole();
 
+    let caughtError: unknown;
     try {
       zenv(
         {
@@ -142,18 +143,15 @@ describe("core immutability and protection", () => {
           onError: "throw"
         }
       );
-      // Should not reach here
-      expect(true).toBe(false);
     } catch (error) {
-      expect(error).toBeInstanceOf(ZenvError);
-
-      if (error instanceof ZenvError) {
-        // The error message is generic, detailed info is in zodErrors
-        expect(error.message).toBe("Environment validation failed");
-        expect(error.zodErrors).toBeDefined();
-        expect(error.zodErrors?.length).toBeGreaterThan(0);
-      }
+      caughtError = error;
     }
+    expect(caughtError).toBeInstanceOf(ZenvError);
+    const zenvErr = caughtError as ZenvError;
+    // The error message is generic, detailed info is in zodErrors
+    expect(zenvErr.message).toBe("Environment validation failed");
+    expect(zenvErr.zodErrors).toBeDefined();
+    expect(zenvErr.zodErrors?.length).toBeGreaterThan(0);
 
     suppressRestore();
     env.restore();
@@ -201,6 +199,7 @@ describe("core immutability and protection", () => {
     const env = mockProcessEnv({});
     const { restore: suppressRestore } = suppressConsole();
 
+    let caughtError: unknown;
     try {
       zenv(
         {
@@ -210,13 +209,12 @@ describe("core immutability and protection", () => {
           onError: "throw"
         }
       );
-      expect(true).toBe(false); // Should not reach here
     } catch (error) {
-      expect(error).toBeInstanceOf(ZenvError);
-      if (error instanceof ZenvError) {
-        expect(error.message).toBe("Environment validation failed");
-      }
+      caughtError = error;
     }
+    expect(caughtError).toBeInstanceOf(ZenvError);
+    const zenvErr = caughtError as ZenvError;
+    expect(zenvErr.message).toBe("Environment validation failed");
 
     suppressRestore();
     env.restore();
@@ -228,6 +226,7 @@ describe("core immutability and protection", () => {
     });
     const { restore: suppressRestore } = suppressConsole();
 
+    let caughtError: unknown;
     try {
       zenv(
         {
@@ -237,13 +236,12 @@ describe("core immutability and protection", () => {
           onError: "throw"
         }
       );
-      expect(true).toBe(false); // Should not reach here
     } catch (error) {
-      expect(error).toBeInstanceOf(ZenvError);
-      if (error instanceof ZenvError) {
-        expect(error.message).toBe("Environment validation failed");
-      }
+      caughtError = error;
     }
+    expect(caughtError).toBeInstanceOf(ZenvError);
+    const zenvErr = caughtError as ZenvError;
+    expect(zenvErr.message).toBe("Environment validation failed");
 
     suppressRestore();
     env.restore();
@@ -255,6 +253,7 @@ describe("core immutability and protection", () => {
 
     const customSchema = z.string().min(10).describe("Custom API key");
 
+    let caughtError: unknown;
     try {
       zenv(
         {
@@ -264,13 +263,12 @@ describe("core immutability and protection", () => {
           onError: "throw"
         }
       );
-      expect(true).toBe(false);
     } catch (error) {
-      expect(error).toBeInstanceOf(ZenvError);
-      if (error instanceof ZenvError) {
-        expect(error.message).toBe("Environment validation failed");
-      }
+      caughtError = error;
     }
+    expect(caughtError).toBeInstanceOf(ZenvError);
+    const zenvErr = caughtError as ZenvError;
+    expect(zenvErr.message).toBe("Environment validation failed");
 
     suppressRestore();
     env.restore();

@@ -141,28 +141,24 @@ describe("Errors Module", () => {
       };
 
       // Test catching ZenvMissingError
+      let missingErr: unknown;
       try {
         throwMissingError();
-        throw new Error("Should have thrown");
       } catch (e) {
-        if (e instanceof ZenvMissingError) {
-          expect(e.message).toBe("Missing variable");
-        } else {
-          throw new Error("Wrong error type");
-        }
+        missingErr = e;
       }
+      expect(missingErr).toBeInstanceOf(ZenvMissingError);
+      expect((missingErr as ZenvMissingError).message).toBe("Missing variable");
 
       // Test catching ZenvError
+      let validationErr: unknown;
       try {
         throwValidationError();
-        throw new Error("Should have thrown");
       } catch (e) {
-        if (e instanceof ZenvError) {
-          expect(e.message).toBe("Invalid variable");
-        } else {
-          throw new Error("Wrong error type");
-        }
+        validationErr = e;
       }
+      expect(validationErr).toBeInstanceOf(ZenvError);
+      expect((validationErr as ZenvError).message).toBe("Invalid variable");
     });
   });
 });

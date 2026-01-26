@@ -36,8 +36,8 @@
     "@workspace/eslint-config": "workspace:*",
     "@workspace/prettier-config": "workspace:*",
     "eslint": "9.39.2",
-    "prettier": "3.8.0",
-    "turbo": "2.7.5",
+    "prettier": "3.8.1",
+    "turbo": "2.7.6",
     "typescript": "5.9.3"
   },
   "prettier": "@workspace/prettier-config",

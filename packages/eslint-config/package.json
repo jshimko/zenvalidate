@@ -12,9 +12,9 @@
     "@vitest/eslint-plugin": "1.6.6",
     "eslint": "9.39.2",
     "eslint-config-prettier": "10.1.8",
-    "eslint-plugin-jsdoc": "61.7.1",
-    "globals": "16.5.0",
-    "prettier": "3.8.0",
+    "eslint-plugin-jsdoc": "62.4.1",
+    "globals": "17.1.0",
+    "prettier": "3.8.1",
     "typescript-eslint": "8.53.1"
   }
 }

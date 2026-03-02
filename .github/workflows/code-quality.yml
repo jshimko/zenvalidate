@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ["22", "24"]
+        node: ["24", "25"]
     name: Run code quality checks on Node ${{ matrix.node }}
     steps:
       - uses: actions/checkout@v5

@@ -1,5 +1,11 @@
 # zenvalidate
 
+## 1.5.0
+
+### Minor Changes
+
+- 4a9577c: minor deps updates
+
 ## 1.4.1
 
 ### Patch Changes

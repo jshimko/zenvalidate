@@ -147,6 +147,23 @@ const env = zenv({
 });
 ```
 
+### Empty Strings Count as Missing
+
+dotenv and docker compose render a bare `VAR=` line as an empty string. By default, zenv treats `""` the same as an unset variable — defaults apply, and required variables report as missing — instead of validating the empty string itself (which would, e.g., coerce to `0` for `num()` or fail `url()`/choices validation at startup):
+
+```typescript
+// .env contains the line: RETENTION_DAYS=
+const env = zenv({ RETENTION_DAYS: num({ default: 30 }) });
+env.RETENTION_DAYS; // 30 (not Number("") === 0)
+```
+
+Opt out with `emptyStringAsMissing: false` to validate empty strings like any other value:
+
+```typescript
+const env = zenv({ PREFIX: str({ default: "app" }) }, { emptyStringAsMissing: false });
+// PREFIX="" in the environment → env.PREFIX === ""
+```
+
 ### Type Safety
 
 Full TypeScript inference without type annotations:
@@ -397,6 +414,9 @@ const env = zenv({
 Configure error behavior:
 
 ```typescript
+// Handle errors programmatically
+import { ZenvError } from "zenvalidate";
+
 const env = zenv(specs, {
   // Error handling strategies
   onError: "exit", // Exit process (default on server)
@@ -412,15 +432,15 @@ const env = zenv(specs, {
 
   // Validation options
   strict: true, // Prevent access to un-validated vars
-  env: customEnvObject // Use custom env source (testing, etc.), process.env by default
+  env: customEnvObject, // Use custom env source (testing, etc.), process.env by default
+  emptyStringAsMissing: false // Validate "" instead of treating it as unset (default: true)
 });
 
-// Handle errors programmatically
 try {
   const env = zenv(specs, { onError: "throw" });
 } catch (error) {
-  if (error instanceof ValidationError) {
-    console.error("Validation failed:", error.errors);
+  if (error instanceof ZenvError) {
+    console.error("Validation failed:", error.zodErrors);
   }
 }
 ```

@@ -284,7 +284,7 @@ function validateSpecs(
   const errors: z.ZodError[] = [];
   const result: Record<string, unknown> = {};
   const metadata = new Map<string, SchemaMetadata>();
-  const { clientSafePrefixes = [] } = options;
+  const { clientSafePrefixes = [], emptyStringAsMissing = true } = options;
 
   for (const [key, validator] of Object.entries(specs)) {
     try {
@@ -311,7 +311,11 @@ function validateSpecs(
 
       // When env is undefined or empty object, rawValue will be undefined
       // This is fine - the validator should handle undefined and apply defaults
-      const rawValue = env[key];
+      // A bare `VAR=` line in dotenv/compose arrives as "" — by default treat
+      // it as unset too (emptyStringAsMissing), so defaults apply and required
+      // variables report as missing rather than the empty string validating.
+      const raw = env[key];
+      const rawValue = emptyStringAsMissing && raw === "" ? undefined : raw;
       result[key] = validateSingleSpec(key, validator, rawValue, metadata, options);
     } catch (error) {
       if (isZodError(error)) {

@@ -276,6 +276,18 @@ export interface ZenvOptions {
   env?: NodeJS.ProcessEnv;
 
   /**
+   * Treat empty-string values as missing/unset.
+   * dotenv (and docker compose) render a bare `VAR=` line as an empty string;
+   * with this enabled (the default) such variables fall back to their
+   * defaults — or count as missing for required variables — instead of the
+   * empty string itself being validated (which would, e.g., coerce to 0 for
+   * `num()` or fail `url()`/choices validation at startup).
+   * Set to `false` to validate empty strings like any other value.
+   * @default true
+   */
+  emptyStringAsMissing?: boolean;
+
+  /**
    * Prefixes that automatically mark variables as client-safe.
    * Variables starting with these prefixes are automatically exposed to client.
    * @default [] - No auto-exposure by default (secure by default)

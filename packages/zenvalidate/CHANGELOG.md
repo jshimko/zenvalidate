@@ -1,5 +1,15 @@
 # zenvalidate
 
+## 1.7.0
+
+### Minor Changes
+
+- Treat empty-string env values as missing by default (new `emptyStringAsMissing` option, default `true`).
+
+  dotenv and docker compose render a bare `VAR=` line as `""`, which previously validated the empty string itself — `num()` silently coerced it to `0`, and `url()`/choices validation rejected it at startup. Now such values fall back to their defaults (or report as missing for required variables). Set `emptyStringAsMissing: false` for the previous behavior.
+
+  Also fixes the README error-handling example to reference the exported `ZenvError`/`zodErrors` (there is no `ValidationError` export).
+
 ## 1.6.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # zenvalidate
 
+## 1.6.0
+
+### Minor Changes
+
+- 9608859: bump latest minor deps
+
 ## 1.5.0
 
 ### Minor Changes

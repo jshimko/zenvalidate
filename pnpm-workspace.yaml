@@ -1,6 +1,9 @@
 packages:
   - packages/*
 
+allowBuilds:
+  esbuild: true
+
 minimumReleaseAge: 12
 
 minimumReleaseAgeExclude:

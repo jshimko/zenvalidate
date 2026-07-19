@@ -76,7 +76,7 @@ describe("SSR injection and environment detection", () => {
     };
 
     const originalEnv = process.env;
-    process.env = testEnv as NodeJS.ProcessEnv;
+    process.env = testEnv;
 
     const env = runtime.env;
 
@@ -96,7 +96,7 @@ describe("SSR injection and environment detection", () => {
     process.env = {
       NEXT_PUBLIC_API: "https://api.server.com",
       SECRET_KEY: "server-secret"
-    } as NodeJS.ProcessEnv;
+    };
 
     let env = runtime.env;
     expect(env.NEXT_PUBLIC_API).toBe("https://api.server.com");

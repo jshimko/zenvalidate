@@ -53,7 +53,7 @@ export function mockRuntime(type: "server" | "client"): { restore: () => void } 
 export function mockProcessEnv(env: Record<string, string | undefined>): { restore: () => void } {
   const originalEnv = process.env;
   const processSpy = vi.spyOn(process, "env", "get");
-  processSpy.mockReturnValue(env as NodeJS.ProcessEnv);
+  processSpy.mockReturnValue(env);
 
   return {
     restore: (): void => {

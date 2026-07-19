@@ -374,7 +374,8 @@ describe("Type Guards Module", () => {
 
       it("should handle null/undefined", () => {
         // Test with type assertions for edge cases
-        const result1 = safeGet({} as Record<string, unknown>, "key");
+        const emptyObj: { key?: string } = {};
+        const result1 = safeGet(emptyObj, "key");
         expect(result1).toBeUndefined();
 
         // These should be tested differently since safeGet expects an object

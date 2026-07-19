@@ -619,7 +619,7 @@ describe("client-inject - getClientEnvScript", () => {
       };
 
       const originalEnv = process.env;
-      process.env = mockEnv as NodeJS.ProcessEnv;
+      process.env = mockEnv;
 
       try {
         const env = zenv(
@@ -655,7 +655,7 @@ describe("client-inject - getClientEnvScript", () => {
       // Test development environment
       process.env = {
         NODE_ENV: "development"
-      } as NodeJS.ProcessEnv;
+      };
 
       try {
         const env = zenv(

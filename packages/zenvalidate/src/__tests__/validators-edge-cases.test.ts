@@ -1,6 +1,6 @@
 /**
  * @module validators-edge-cases.test
- * @description Tests for edge cases and uncovered paths in validators.ts
+ * @description Tests for edge cases and uncovered paths in the validators/ modules
  */
 import { z } from "zod/v4";
 
@@ -10,7 +10,7 @@ import { mockProcessEnv, suppressConsole } from "./test-utils";
 
 describe("JSON validator with schema", () => {
   it("should validate JSON that matches the provided schema", () => {
-    // This tests line 1000 in validators.ts - successful schema validation
+    // This tests validators/json.ts - successful schema validation
     const env = mockProcessEnv({
       CONFIG: '{"count": 42, "enabled": true, "name": "test"}'
     });
@@ -57,7 +57,7 @@ describe("JSON validator with schema", () => {
   });
 
   it("should handle malformed JSON strings", () => {
-    // This tests lines 1013-1017 in validators.ts - JSON parse error handling
+    // This tests validators/json.ts - JSON parse error handling
     const { restore: suppressRestore } = suppressConsole();
 
     const env = mockProcessEnv({
@@ -159,7 +159,7 @@ describe("JSON validator with schema", () => {
 
 describe("number choices with string coercion", () => {
   it("should coerce string numbers to numbers when using choices", () => {
-    // This tests line 399 in validators.ts - number coercion in preprocessing
+    // This tests validators/primitives.ts - number coercion in preprocessing
     const env = mockProcessEnv({
       LOG_LEVEL: "2", // String that should be coerced to number
       PRIORITY: "1",
@@ -220,7 +220,7 @@ describe("number choices with string coercion", () => {
 
 describe("URL validation error handling", () => {
   it("should handle malformed URLs with protocol refinement", () => {
-    // This tests line 717 in validators.ts - URL parse error in protocol check
+    // This tests validators/network.ts - URL parse error in protocol check
     const env = mockProcessEnv({
       API_URL: "not a valid url at all"
     });
@@ -251,7 +251,7 @@ describe("URL validation error handling", () => {
   });
 
   it("should handle malformed URLs with hostname refinement", () => {
-    // This tests line 722 in validators.ts - URL parse error in hostname check
+    // This tests validators/network.ts - URL parse error in hostname check
     const env = mockProcessEnv({
       API_ENDPOINT: "not://a.valid.url"
     });
@@ -307,7 +307,7 @@ describe("URL validation error handling", () => {
 
 describe("custom validator without transform", () => {
   it("should create custom validator with validation only", () => {
-    // This tests line 2179 in validators.ts - makeValidator with validator but no transform
+    // This tests validators/make-validator.ts - makeValidator with validator but no transform
     const semverValidator = makeValidator({
       validator: (value) => {
         // Simple semver pattern check
@@ -398,7 +398,7 @@ describe("custom validator without transform", () => {
 
 describe("deep client option merging", () => {
   it("should properly merge client options from base and overrides", () => {
-    // This tests lines 134-149 in validators.ts - deep client merge in mergeOptions
+    // This tests validators/make-validator.ts - deep client merge in mergeOptions
     const customValidator = makeValidator({
       schemaFactory: () => z.string(),
       client: {

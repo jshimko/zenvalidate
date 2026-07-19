@@ -30,7 +30,7 @@ export {
   guid,
   xid,
   ksuid
-} from "./validators";
+} from "./validators/index";
 
 // Types
 export type {

@@ -53,7 +53,7 @@
     "exports": {
       ".": "./src/index.ts",
       "./types": "./src/types.ts",
-      "./validators": "./src/validators.ts"
+      "./validators": "./src/validators/index.ts"
     }
   },
   "files": [
@@ -74,9 +74,9 @@
       "require": "./dist/types.cjs"
     },
     "./validators": {
-      "types": "./dist/validators.d.cts",
-      "import": "./dist/validators.js",
-      "require": "./dist/validators.cjs"
+      "types": "./dist/validators/index.d.cts",
+      "import": "./dist/validators/index.js",
+      "require": "./dist/validators/index.cjs"
     }
   }
 }

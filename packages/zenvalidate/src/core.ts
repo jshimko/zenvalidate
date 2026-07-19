@@ -11,7 +11,7 @@ import { runtime } from "./runtime";
 import type { CleanedEnv, EnvAccessors, ZenvOptions, ZenvSpec } from "./types";
 import { getErrorMessage, isZodError, isZodSchema, startsWithAny } from "./types/guards";
 import type { SchemaMetadata } from "./types/inference";
-import { getMetadata } from "./validators";
+import { getMetadata } from "./validators/metadata";
 
 /**
  * Add NODE_ENV convenience properties to the environment object.
@@ -423,7 +423,7 @@ export function zenv<T extends ZenvSpec>(specs: T, options: ZenvOptions = {}): C
   // Handle validation errors
   if (errors.length > 0) {
     if (reporter) {
-      reporter(errors, env as Record<string, string | undefined>);
+      reporter(errors, env);
     } else {
       // Default error reporting
       reportErrors(errors, onError);

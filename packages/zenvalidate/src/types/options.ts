@@ -39,9 +39,18 @@ export interface ClientConfig<T = string | number | boolean, TChoices = undefine
   /**
    * Override the development default specifically for client environments.
    * Takes precedence over the base `devDefault` option when on client in development.
+   * Also inherited by the test environment when `testDefault` is not set.
    * When choices are specified, this must be one of the choices.
    */
   devDefault?: (TChoices extends readonly T[] ? TChoices[number] : T) | undefined;
+
+  /**
+   * Override the test default specifically for client environments.
+   * When not set, the client falls back to `devDefault`, then `default`.
+   * Set explicitly (including to `undefined`) to override an inherited `devDefault`.
+   * When choices are specified, this must be one of the choices.
+   */
+  testDefault?: (TChoices extends readonly T[] ? TChoices[number] : T) | undefined;
 }
 
 /**

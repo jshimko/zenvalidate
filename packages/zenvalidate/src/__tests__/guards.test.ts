@@ -324,6 +324,17 @@ describe("Type Guards Module", () => {
         ).toBe(true);
       });
 
+      it("should accept testDefault in ClientConfig", () => {
+        expect(
+          isClientConfig({
+            expose: true,
+            default: "value",
+            devDefault: "dev-value",
+            testDefault: "test-value"
+          })
+        ).toBe(true);
+      });
+
       it("should reject invalid ClientConfig", () => {
         expect(isClientConfig({})).toBe(false); // missing expose
         expect(isClientConfig({ expose: "true" })).toBe(false); // expose not boolean

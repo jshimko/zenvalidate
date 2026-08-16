@@ -177,6 +177,210 @@ describe("client-side server-only variable handling", () => {
     env.restore();
   });
 
+  describe("client default resolution in test environment", () => {
+    // NODE_ENV is already "test" under vitest, so no runtime getter spying is needed
+    it("should use client testDefault over client default in test", () => {
+      const clientMock = mockRuntime("client");
+      const env = mockProcessEnv({ NODE_ENV: "test" });
+
+      const result = zenv({
+        FLAG: str({
+          default: undefined,
+          client: {
+            expose: true,
+            testDefault: "client-test",
+            default: "client-prod"
+          }
+        })
+      });
+
+      expect(result.FLAG).toBe("client-test");
+
+      clientMock.restore();
+      env.restore();
+    });
+
+    it("should inherit client devDefault in test when client testDefault is not set", () => {
+      const clientMock = mockRuntime("client");
+      const env = mockProcessEnv({ NODE_ENV: "test" });
+
+      const result = zenv({
+        FLAG: str({
+          default: undefined,
+          client: {
+            expose: true,
+            devDefault: "client-dev",
+            default: "client-prod"
+          }
+        })
+      });
+
+      expect(result.FLAG).toBe("client-dev");
+
+      clientMock.restore();
+      env.restore();
+    });
+
+    it("should block inheritance in test when client testDefault is explicitly undefined", () => {
+      const clientMock = mockRuntime("client");
+      const env = mockProcessEnv({ NODE_ENV: "test" });
+
+      const result = zenv({
+        FLAG: str({
+          default: undefined,
+          client: {
+            expose: true,
+            testDefault: undefined,
+            devDefault: "client-dev",
+            default: "client-prod"
+          }
+        })
+      });
+
+      expect(result.FLAG).toBe(undefined);
+
+      clientMock.restore();
+      env.restore();
+    });
+
+    it("should not fall through to client default in development when client devDefault is explicitly undefined", () => {
+      const clientMock = mockRuntime("client");
+      vi.spyOn(runtime, "isDevelopment", "get").mockReturnValue(true);
+      vi.spyOn(runtime, "nodeEnv", "get").mockReturnValue("development");
+      const env = mockProcessEnv({ NODE_ENV: "development" });
+
+      const result = zenv({
+        FLAG: str({
+          default: undefined,
+          client: {
+            expose: true,
+            devDefault: undefined,
+            default: "client-prod"
+          }
+        })
+      });
+
+      expect(result.FLAG).toBe(undefined);
+
+      vi.restoreAllMocks();
+      clientMock.restore();
+      env.restore();
+    });
+
+    it("should not consult client testDefault or devDefault in production", () => {
+      const clientMock = mockRuntime("client");
+      vi.spyOn(runtime, "isProduction", "get").mockReturnValue(true);
+      vi.spyOn(runtime, "isDevelopment", "get").mockReturnValue(false);
+      vi.spyOn(runtime, "nodeEnv", "get").mockReturnValue("production");
+      const env = mockProcessEnv({ NODE_ENV: "production" });
+
+      const result = zenv({
+        FLAG: str({
+          default: undefined,
+          client: {
+            expose: true,
+            testDefault: "client-test",
+            devDefault: "client-dev",
+            default: "client-prod"
+          }
+        })
+      });
+
+      expect(result.FLAG).toBe("client-prod");
+
+      vi.restoreAllMocks();
+      clientMock.restore();
+      env.restore();
+    });
+
+    it("should prefer an explicitly set env value over client defaults in test", () => {
+      const clientMock = mockRuntime("client");
+      const env = mockProcessEnv({ NODE_ENV: "test", FLAG: "actual-value" });
+
+      const result = zenv({
+        FLAG: str({
+          default: undefined,
+          client: {
+            expose: true,
+            testDefault: "client-test"
+          }
+        })
+      });
+
+      expect(result.FLAG).toBe("actual-value");
+
+      clientMock.restore();
+      env.restore();
+    });
+
+    it("should override the server-resolved base default when client default is explicitly undefined", () => {
+      const clientMock = mockRuntime("client");
+      vi.spyOn(runtime, "isProduction", "get").mockReturnValue(true);
+      vi.spyOn(runtime, "isDevelopment", "get").mockReturnValue(false);
+      vi.spyOn(runtime, "nodeEnv", "get").mockReturnValue("production");
+      const env = mockProcessEnv({ NODE_ENV: "production" });
+
+      const result = zenv({
+        FLAG: str({
+          default: "server-val",
+          client: {
+            expose: true,
+            default: undefined
+          }
+        })
+      });
+
+      expect(result.FLAG).toBe(undefined);
+
+      vi.restoreAllMocks();
+      clientMock.restore();
+      env.restore();
+    });
+
+    it("should treat an empty-string env value as unset and apply client defaults in test", () => {
+      const clientMock = mockRuntime("client");
+      const env = mockProcessEnv({ NODE_ENV: "test", FLAG: "" });
+
+      const result = zenv({
+        FLAG: str({
+          default: undefined,
+          client: {
+            expose: true,
+            testDefault: "client-test"
+          }
+        })
+      });
+
+      expect(result.FLAG).toBe("client-test");
+
+      clientMock.restore();
+      env.restore();
+    });
+
+    it("should treat an empty-string env value as explicitly set when emptyStringAsMissing is false", () => {
+      const clientMock = mockRuntime("client");
+      const env = mockProcessEnv({ NODE_ENV: "test", FLAG: "" });
+
+      const result = zenv(
+        {
+          FLAG: str({
+            default: undefined,
+            client: {
+              expose: true,
+              testDefault: "client-test"
+            }
+          })
+        },
+        { emptyStringAsMissing: false }
+      );
+
+      expect(result.FLAG).toBe("");
+
+      clientMock.restore();
+      env.restore();
+    });
+  });
+
   it("should handle mixed client/server variables correctly", () => {
     const clientMock = mockRuntime("client");
     const env = mockProcessEnv({

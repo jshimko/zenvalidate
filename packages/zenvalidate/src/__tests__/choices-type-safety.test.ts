@@ -54,6 +54,27 @@ describe("Choices type safety", () => {
       expect(_validator.parse("a")).toBe("a");
     });
 
+    it("should constrain client testDefault to choices", () => {
+      const _validator = str({
+        choices: ["a", "b", "c"],
+        client: {
+          expose: true,
+          testDefault: "a" // Valid
+        }
+      });
+
+      // @ts-expect-error - client testDefault not in choices
+      const _validator2 = str({
+        choices: ["a", "b", "c"],
+        client: {
+          expose: true,
+          testDefault: "d"
+        }
+      });
+
+      expect(_validator.parse("a")).toBe("a");
+    });
+
     it("should allow any string when no choices specified", () => {
       const _validator = str({
         default: "any string is fine",

@@ -12,7 +12,8 @@ const ClientConfigSchema = z
     expose: z.boolean(),
     transform: z.function().optional(),
     default: z.unknown().optional(),
-    devDefault: z.unknown().optional()
+    devDefault: z.unknown().optional(),
+    testDefault: z.unknown().optional()
   })
   .strict();
 

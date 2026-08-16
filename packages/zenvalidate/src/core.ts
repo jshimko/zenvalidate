@@ -61,7 +61,7 @@ function createProtectiveProxy<T extends Record<string, unknown>>(
   options: ZenvOptions,
   rawEnv: NodeJS.ProcessEnv | Record<string, unknown>
 ): T {
-  const { strict = true, onClientAccessError = runtime.defaultClientAccessError } = options;
+  const { strict = true, onClientAccessError = runtime.defaultClientAccessError, emptyStringAsMissing = true } = options;
 
   // Symbols and properties that should pass through without checks
   const inspectables = [
@@ -124,16 +124,26 @@ function createProtectiveProxy<T extends Record<string, unknown>>(
 
           // Check if the value was explicitly set in the raw environment
           // If not, and we have client-specific defaults, use those instead
-          const wasExplicitlySet = (rawEnv as Record<string, unknown> | undefined) && propName in rawEnv;
+          // An empty string counts as unset under emptyStringAsMissing, matching validation
+          const rawValue = (rawEnv as Record<string, unknown> | undefined)?.[propName];
+          const wasExplicitlySet =
+            (rawEnv as Record<string, unknown> | undefined) && propName in rawEnv && !(emptyStringAsMissing && rawValue === "");
 
           if (!wasExplicitlySet && meta.client) {
-            const { default: clientDefault, devDefault: clientDevDefault } = meta.client;
+            const clientConfig = meta.client;
+            const nodeEnv = runtime.nodeEnv;
 
-            // Apply client environment-specific default if available
-            if (runtime.isDevelopment && clientDevDefault !== undefined) {
-              value = clientDevDefault as T[keyof T];
-            } else if (clientDefault !== undefined) {
-              value = clientDefault as T[keyof T];
+            // Apply client environment-specific defaults, mirroring applyEnvironmentDefaults:
+            //   test:        testDefault → devDefault → default
+            //   development: devDefault → default
+            //   otherwise:   default
+            // Presence is checked with the 'in' operator so an explicit undefined blocks fall-through
+            if (nodeEnv === "test" && "testDefault" in clientConfig) {
+              value = clientConfig.testDefault as T[keyof T];
+            } else if ((nodeEnv === "test" || nodeEnv === "development") && "devDefault" in clientConfig) {
+              value = clientConfig.devDefault as T[keyof T];
+            } else if ("default" in clientConfig) {
+              value = clientConfig.default as T[keyof T];
             }
           }
 

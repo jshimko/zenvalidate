@@ -155,6 +155,8 @@ Defaults resolve per environment in this order:
 
 The first key _present_ in the options wins — an explicit `undefined` counts as present and makes the variable optional rather than falling through to the next key.
 
+The same chain applies to the client-specific overrides (`client.testDefault` → `client.devDefault` → `client.default`) when a client-exposed variable is missing from the environment. An explicit `undefined` in the client chain also wins over the server-resolved value — `client: { expose: true, default: undefined }` means the variable resolves to `undefined` on the client even when a server-side default exists.
+
 Tests inherit `devDefault` automatically, so working development values are available to your test runs without duplicating them — set `testDefault` only when tests need a different value:
 
 ```typescript
@@ -536,7 +538,8 @@ interface BaseOptions<T> {
     expose: boolean; // Allow client access
     transform?: (v: T) => T; // Transform for client
     default?: T; // Client-specific default
-    devDefault?: T; // Client-specific dev default
+    devDefault?: T; // Client-specific dev default (inherited by test when testDefault is not set)
+    testDefault?: T; // Client-specific test default (falls back to devDefault, then default)
   };
 }
 ```

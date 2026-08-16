@@ -1,5 +1,23 @@
 # zenvalidate
 
+## 2.0.0
+
+### Major Changes
+
+- e9116fe: **Breaking:** `ClientConfig` now supports `testDefault`, and client-specific defaults resolve with the same environment chain and presence semantics as server-side defaults: in test, `client.testDefault` → `client.devDefault` → `client.default`; in development, `client.devDefault` → `client.default`; otherwise `client.default`. The first key _present_ wins — an explicit `undefined` now stops the chain instead of falling through.
+
+  This is breaking in three ways:
+
+  - Client-exposed variables in `NODE_ENV=test` now pick up `client.devDefault` (previously they fell straight to `client.default`).
+  - An explicit `client.devDefault: undefined` in development now yields `undefined` instead of falling through to `client.default`.
+  - An explicit `undefined` anywhere in the client chain (e.g. `client.default: undefined`) now overrides the server-resolved base default on the client — previously the client chain was skipped entirely and the server-resolved value showed through.
+
+  Additionally, the client default chain now respects `emptyStringAsMissing`: a variable supplied as an empty string (a bare `VAR=` dotenv line) counts as unset on the client too, so client-specific defaults apply — previously the empty string counted as explicitly set and silently blocked them, contradicting the documented empty-string semantics.
+
+- fa6e985: **Breaking:** The test environment now inherits `devDefault` when `testDefault` is not set. Default resolution in `NODE_ENV=test` is now `testDefault` → `devDefault` → `default`, so working development values are available to test runs without duplicating them. Set `testDefault` only when tests need a different value; an explicit `testDefault` (including `undefined`, which makes the variable optional in test) still overrides the inherited value. Development and production resolution are unchanged.
+
+  This is breaking for setups that relied on the previous behavior: in `NODE_ENV=test`, a variable with only a `devDefault` was previously required (or fell back to `default` when one was set) — it now resolves to the `devDefault` value instead.
+
 ## 1.7.0
 
 ### Minor Changes

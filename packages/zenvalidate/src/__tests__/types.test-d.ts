@@ -1,5 +1,4 @@
 // The rule below is disabled because it is used to test the type inference of the library.
- 
 /**
  * @module types.test-d
  * @description Type definition tests for `zenvalidate`

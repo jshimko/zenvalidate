@@ -147,6 +147,29 @@ const env = zenv({
 });
 ```
 
+Defaults resolve per environment in this order:
+
+- **`NODE_ENV=test`**: `testDefault` → `devDefault` → `default`
+- **`NODE_ENV=development`**: `devDefault` → `default`
+- **otherwise**: `default`
+
+The first key _present_ in the options wins — an explicit `undefined` counts as present and makes the variable optional rather than falling through to the next key.
+
+Tests inherit `devDefault` automatically, so working development values are available to your test runs without duplicating them — set `testDefault` only when tests need a different value:
+
+```typescript
+const env = zenv({
+  // Tests get the dev database too — no testDefault needed
+  DATABASE_URL: url({ devDefault: "postgresql://localhost:5432/dev" }),
+
+  // Tests override the dev value
+  LOG_LEVEL: str({ devDefault: "debug", testDefault: "error" }),
+
+  // Explicit `testDefault: undefined` blocks inheritance — optional in test, dev value in development
+  SENTRY_DSN: url({ devDefault: "https://dev@sentry.example.com/1", testDefault: undefined })
+});
+```
+
 ### Empty Strings Count as Missing
 
 dotenv and docker compose render a bare `VAR=` line as an empty string. By default, zenv treats `""` the same as an unset variable — defaults apply, and required variables report as missing — instead of validating the empty string itself (which would, e.g., coerce to `0` for `num()` or fail `url()`/choices validation at startup):
@@ -505,8 +528,8 @@ All validators share common base options:
 ```typescript
 interface BaseOptions<T> {
   default?: T; // Default value
-  devDefault?: T; // Override when NODE_ENV=development
-  testDefault?: T; // Override when NODE_ENV=test
+  devDefault?: T; // Override when NODE_ENV=development (inherited by test when testDefault is not set)
+  testDefault?: T; // Override when NODE_ENV=test (falls back to devDefault, then default)
   description?: string; // Documentation
   example?: string; // Example value
   client?: {

@@ -19,33 +19,28 @@ export function applyEnvironmentDefaults<T>(schema: z.ZodType<T>, options?: Base
 
   const nodeEnv = runtime.nodeEnv;
 
-  // Apply defaults based on environment priority
-  // In Zod v4, we need to make the schema optional to apply defaults
-  // Use 'in' operator to check for property existence, allowing undefined as a valid default
-
-  // Special handling for undefined and null defaults - just make the schema optional without a default
+  // Apply defaults based on environment priority:
+  //   test:        testDefault → devDefault → default
+  //   development: devDefault → default
+  //   otherwise:   default
+  // Use 'in' operator to check for property existence, allowing undefined as a valid default —
+  // an explicit `testDefault: undefined` makes the variable optional in test rather than inheriting devDefault
+  let value: T | undefined;
   if (nodeEnv === "test" && "testDefault" in options) {
-    const value = options.testDefault;
-    if (value === undefined || value === null) {
-      return schema.optional() as z.ZodType<T>;
-    }
-    // Type assertion to satisfy Zod's NoUndefined requirement
-    return schema.optional().default(value as Exclude<T, undefined>);
-  } else if (nodeEnv === "development" && "devDefault" in options) {
-    const value = options.devDefault;
-    if (value === undefined || value === null) {
-      return schema.optional() as z.ZodType<T>;
-    }
-    // Type assertion to satisfy Zod's NoUndefined requirement
-    return schema.optional().default(value as Exclude<T, undefined>);
+    value = options.testDefault;
+  } else if ((nodeEnv === "test" || nodeEnv === "development") && "devDefault" in options) {
+    value = options.devDefault;
   } else if ("default" in options) {
-    const value = options.default;
-    if (value === undefined || value === null) {
-      return schema.optional() as z.ZodType<T>;
-    }
-    // Type assertion to satisfy Zod's NoUndefined requirement
-    return schema.optional().default(value as Exclude<T, undefined>);
+    value = options.default;
+  } else {
+    return schema;
   }
 
-  return schema;
+  // Special handling for undefined and null defaults - just make the schema optional without a default
+  // In Zod v4, we need to make the schema optional to apply defaults
+  if (value === undefined || value === null) {
+    return schema.optional() as z.ZodType<T>;
+  }
+  // Type assertion to satisfy Zod's NoUndefined requirement
+  return schema.optional().default(value as Exclude<T, undefined>);
 }

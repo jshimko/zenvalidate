@@ -59,12 +59,16 @@ export interface BaseOptions<T = string | number | boolean, TChoices = undefined
 
   /**
    * Default value in development environment (NODE_ENV=development).
+   * Also inherited by the test environment when `testDefault` is not set,
+   * so working development values are available to tests without duplication.
    * When choices are specified, this must be one of the choices.
    */
   devDefault?: (TChoices extends readonly T[] ? TChoices[number] : T) | undefined;
 
   /**
    * Default value in test environment (NODE_ENV=test).
+   * When not set, tests fall back to `devDefault`, then `default`.
+   * Set explicitly (including to `undefined`) to override an inherited `devDefault`.
    * When choices are specified, this must be one of the choices.
    */
   testDefault?: (TChoices extends readonly T[] ? TChoices[number] : T) | undefined;
